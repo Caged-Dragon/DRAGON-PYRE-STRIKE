@@ -1,0 +1,1622 @@
+@import "tailwindcss";
+
+@theme {
+  --font-display: "Pirata One", "Georgia", serif;
+  --font-ui: "Alegreya Sans", "Segoe UI", sans-serif;
+  --color-ember: #ff6b1a;
+  --color-magma: #e2411b;
+  --color-gold: #ffc94d;
+  --color-arcane: #b44dff;
+  --color-venom: #7dff5e;
+  --color-night: #0b0710;
+}
+
+/* ---------- theme tokens ---------- */
+:root {
+  --ds-bg: #06040b;
+  --ds-bg-soft: #120a18;
+  --ds-panel: rgba(28, 16, 30, 0.92);
+  --ds-panel-2: rgba(10, 5, 13, 0.96);
+  --ds-border: rgba(255, 170, 80, 0.42);
+  --ds-border-soft: rgba(255, 198, 108, 0.22);
+  --ds-text: #f6e3c4;
+  --ds-text-dim: #d9b98c;
+  --ds-text-faint: rgba(217, 185, 140, 0.6);
+  --ds-gold: #ffc94d;
+  --ds-ember: #ff6b1a;
+  --ds-steel: #7f8ea3;
+  --ds-shadow: rgba(0, 0, 0, 0.65);
+  --ds-input-bg: rgba(0, 0, 0, 0.5);
+  --ds-chip: rgba(24, 13, 25, 0.86);
+  --ds-hud-text: #ffd98a;
+  --ds-title-shadow:
+    0 0 12px rgba(255, 140, 40, 0.85), 0 0 46px rgba(255, 80, 20, 0.55),
+    0 3px 0 #7c2d12, 0 6px 0 #431407, 0 12px 26px rgba(0, 0, 0, 0.85);
+  --ds-overlay: rgba(2, 1, 5, 0.7);
+  /* Industrial micro-textures */
+  --ds-hatch: repeating-linear-gradient(
+    -45deg,
+    rgba(255, 255, 255, 0.022) 0px,
+    rgba(255, 255, 255, 0.022) 1px,
+    transparent 1px,
+    transparent 7px
+  );
+  --ds-grid:
+    linear-gradient(rgba(255, 170, 90, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 170, 90, 0.05) 1px, transparent 1px);
+}
+
+:root[data-theme="light"] {
+  --ds-bg: #ece2d1;
+  --ds-bg-soft: #f5eee1;
+  --ds-panel: rgba(255, 251, 244, 0.96);
+  --ds-panel-2: rgba(249, 239, 224, 0.97);
+  --ds-border: rgba(160, 105, 40, 0.45);
+  --ds-border-soft: rgba(160, 105, 40, 0.28);
+  --ds-text: #3a2a14;
+  --ds-text-dim: #6a5334;
+  --ds-text-faint: rgba(106, 83, 52, 0.72);
+  --ds-gold: #a9700f;
+  --ds-ember: #c2410c;
+  --ds-steel: #5d6b80;
+  --ds-shadow: rgba(96, 70, 30, 0.24);
+  --ds-input-bg: rgba(255, 255, 255, 0.8);
+  --ds-chip: rgba(255, 252, 246, 0.94);
+  --ds-hud-text: #6b4a12;
+  --ds-title-shadow:
+    0 0 8px rgba(255, 200, 110, 0.55), 0 0 30px rgba(255, 160, 70, 0.3),
+    0 2px 0 #b0761c, 0 5px 0 #7c500e, 0 10px 20px rgba(120, 85, 35, 0.3);
+  --ds-overlay: rgba(90, 70, 40, 0.4);
+  --ds-hatch: repeating-linear-gradient(
+    -45deg,
+    rgba(90, 60, 20, 0.03) 0px,
+    rgba(90, 60, 20, 0.03) 1px,
+    transparent 1px,
+    transparent 7px
+  );
+  --ds-grid:
+    linear-gradient(rgba(120, 80, 30, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(120, 80, 30, 0.06) 1px, transparent 1px);
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  overflow: hidden;
+  background: var(--ds-bg);
+  color: var(--ds-text);
+  font-family: var(--font-ui);
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+  transition: background-color 0.35s ease, color 0.35s ease;
+}
+
+.game-canvas {
+  touch-action: none;
+}
+
+.dragon-choice canvas {
+  pointer-events: none;
+}
+
+/* ---------- display title ---------- */
+.title-ember {
+  font-family: var(--font-display);
+  color: var(--ds-gold);
+  letter-spacing: 0.04em;
+  text-shadow: var(--ds-title-shadow);
+}
+
+.title-blood {
+  font-family: var(--font-display);
+  color: #ff5a3c;
+  letter-spacing: 0.06em;
+  text-shadow:
+    0 0 14px rgba(255, 60, 30, 0.8),
+    0 0 40px rgba(255, 40, 20, 0.4),
+    0 3px 0 #4a0d05,
+    0 8px 20px var(--ds-shadow);
+}
+
+.hud-label {
+  letter-spacing: 0.24em;
+}
+
+/* ---------- panels ---------- */
+.panel-arcane {
+  position: relative;
+  background:
+    var(--ds-hatch),
+    linear-gradient(180deg, var(--ds-panel), var(--ds-panel-2));
+  border: 1px solid var(--ds-border);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.65),
+    0 18px 50px rgba(0, 0, 0, 0.6),
+    0 0 38px rgba(255, 90, 20, 0.15),
+    inset 0 0 44px rgba(255, 90, 20, 0.07);
+  clip-path: polygon(
+    14px 0,
+    calc(100% - 14px) 0,
+    100% 14px,
+    100% calc(100% - 14px),
+    calc(100% - 14px) 100%,
+    14px 100%,
+    0 calc(100% - 14px),
+    0 14px
+  );
+}
+
+/* Forged top edge highlight on the panel. */
+.panel-arcane::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 14px;
+  right: 14px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 210, 130, 0.75), transparent);
+}
+
+.hud-chip {
+  position: relative;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.035), transparent 30%),
+    linear-gradient(180deg, var(--ds-chip), var(--ds-panel-2));
+  border: 1px solid var(--ds-border-soft);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5), inset 0 0 18px rgba(255, 90, 20, 0.08);
+  clip-path: polygon(
+    8px 0,
+    calc(100% - 8px) 0,
+    100% 8px,
+    100% calc(100% - 8px),
+    calc(100% - 8px) 100%,
+    8px 100%,
+    0 calc(100% - 8px),
+    0 8px
+  );
+}
+
+/* Molten ember line that traces the top of every HUD chip. */
+.hud-chip::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 8px;
+  right: 8px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 160, 60, 0.65), transparent);
+  opacity: 0.7;
+}
+
+/* ---------- buttons ---------- */
+@keyframes sheenSweep {
+  0% {
+    transform: translateX(-160%) skewX(-18deg);
+  }
+  55%,
+  100% {
+    transform: translateX(280%) skewX(-18deg);
+  }
+}
+
+@keyframes moltenPulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 22px rgba(255, 110, 30, 0.5),
+      0 6px 0 rgba(90, 18, 0, 0.55),
+      inset 0 1px 0 rgba(255, 255, 255, 0.35),
+      inset 0 -10px 16px rgba(120, 20, 0, 0.55);
+  }
+  50% {
+    box-shadow:
+      0 0 38px rgba(255, 140, 40, 0.85),
+      0 6px 0 rgba(90, 18, 0, 0.55),
+      inset 0 1px 0 rgba(255, 255, 255, 0.4),
+      inset 0 -10px 16px rgba(120, 20, 0, 0.55);
+  }
+}
+
+.btn-ember {
+  position: relative;
+  overflow: hidden;
+  font-family: var(--font-display);
+  letter-spacing: 0.12em;
+  color: #fff3dc;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.14), transparent 42%),
+    linear-gradient(180deg, #ff9a2a 0%, #e2411b 55%, #a92408 100%);
+  border: 1px solid #ffd98a;
+  box-shadow:
+    0 0 22px rgba(255, 110, 30, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    inset 0 -10px 16px rgba(120, 20, 0, 0.55);
+  clip-path: polygon(
+    10px 0,
+    calc(100% - 10px) 0,
+    100% 10px,
+    100% calc(100% - 10px),
+    calc(100% - 10px) 100%,
+    10px 100%,
+    0 calc(100% - 10px),
+    0 10px
+  );
+  animation: moltenPulse 2.6s ease-in-out infinite;
+  transition:
+    transform 0.12s ease,
+    filter 0.12s ease;
+  cursor: pointer;
+}
+
+/* A band of light rolling across the molten metal. */
+.btn-ember::before {
+  content: "";
+  position: absolute;
+  top: -20%;
+  bottom: -20%;
+  left: 0;
+  width: 42%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.34), transparent);
+  transform: translateX(-160%) skewX(-18deg);
+  animation: sheenSweep 3.4s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.btn-ember:hover {
+  filter: brightness(1.16);
+  transform: translateY(-2px);
+}
+.btn-ember:active {
+  transform: translateY(1px) scale(0.98);
+  filter: brightness(0.98);
+}
+
+.btn-stone {
+  position: relative;
+  overflow: hidden;
+  font-family: var(--font-display);
+  letter-spacing: 0.12em;
+  color: #ffd9a0;
+  background:
+    repeating-linear-gradient(
+      -45deg,
+      rgba(255, 255, 255, 0.028) 0px,
+      rgba(255, 255, 255, 0.028) 1px,
+      transparent 1px,
+      transparent 6px
+    ),
+    linear-gradient(180deg, #34202f 0%, #190e1c 100%);
+  border: 1px solid rgba(255, 180, 90, 0.45);
+  box-shadow: inset 0 1px 0 rgba(255, 200, 120, 0.18), 0 4px 14px rgba(0, 0, 0, 0.55);
+  clip-path: polygon(
+    10px 0,
+    calc(100% - 10px) 0,
+    100% 10px,
+    100% calc(100% - 10px),
+    calc(100% - 10px) 100%,
+    10px 100%,
+    0 calc(100% - 10px),
+    0 10px
+  );
+  transition:
+    transform 0.12s ease,
+    filter 0.12s ease,
+    border-color 0.12s ease;
+  cursor: pointer;
+}
+
+.btn-stone::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 10px;
+  right: 10px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 210, 140, 0.5), transparent);
+  opacity: 0.6;
+}
+
+.btn-stone:hover {
+  filter: brightness(1.3);
+  border-color: rgba(255, 200, 120, 0.8);
+  transform: translateY(-2px);
+}
+.btn-stone:active {
+  transform: translateY(1px) scale(0.98);
+}
+
+.key-rune {
+  font-family: var(--font-ui);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #ffd98a;
+  background: linear-gradient(180deg, #2c1826, #170d18);
+  border: 1px solid rgba(255, 180, 90, 0.5);
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 210, 140, 0.2);
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+/* ---------- animations ---------- */
+@keyframes bannerPop {
+  0% {
+    transform: scale(0.35);
+    opacity: 0;
+  }
+  16% {
+    transform: scale(1.14);
+    opacity: 1;
+  }
+  28% {
+    transform: scale(1);
+  }
+  75% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.08);
+    opacity: 0;
+  }
+}
+.banner-pop {
+  animation: bannerPop 2.3s cubic-bezier(0.2, 0.9, 0.3, 1) forwards;
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.fade-up {
+  animation: fadeUp 0.5s ease-out both;
+}
+
+@keyframes emberPulse {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 5px rgba(255, 140, 40, 0.9));
+  }
+  50% {
+    filter: drop-shadow(0 0 16px rgba(255, 140, 40, 1));
+  }
+}
+.ember-pulse {
+  animation: emberPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes floaty {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-9px);
+  }
+}
+.floaty {
+  animation: floaty 3.2s ease-in-out infinite;
+}
+
+@keyframes bossBarPulse {
+  0%,
+  100% {
+    box-shadow: 0 0 10px rgba(255, 60, 30, 0.5), inset 0 0 8px rgba(0, 0, 0, 0.6);
+  }
+  50% {
+    box-shadow: 0 0 22px rgba(255, 60, 30, 0.95), inset 0 0 8px rgba(0, 0, 0, 0.6);
+  }
+}
+.boss-bar-pulse {
+  animation: bossBarPulse 1.1s ease-in-out infinite;
+}
+
+/* ---------- menu shell ---------- */
+.menu-header {
+  position: relative;
+  min-height: 64px;
+  background: linear-gradient(180deg, rgba(8, 4, 13, 0.88), rgba(8, 4, 13, 0.4));
+  backdrop-filter: blur(10px);
+}
+
+/* Molten hairline burning across the bottom edge of the header. */
+.menu-header::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent 4%, rgba(255, 130, 40, 0.75) 30%, rgba(255, 210, 110, 0.9) 50%, rgba(255, 130, 40, 0.75) 70%, transparent 96%);
+  box-shadow: 0 2px 18px rgba(255, 110, 30, 0.4);
+}
+
+.menu-footer {
+  border-top: 1px solid rgba(255, 188, 90, 0.13);
+  background: rgba(8, 4, 13, 0.72);
+  backdrop-filter: blur(8px);
+}
+
+.menu-link {
+  position: relative;
+  color: rgba(239, 211, 170, 0.65);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  transition: color 160ms ease, text-shadow 160ms ease;
+}
+
+.menu-link::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: -7px;
+  left: 0;
+  height: 1px;
+  background: #ffb347;
+  transform: scaleX(0);
+  transition: transform 160ms ease;
+}
+
+.menu-link:hover {
+  color: #ffd98a;
+}
+
+.menu-link:hover::after {
+  transform: scaleX(1);
+}
+
+.account-button {
+  padding: 8px 13px;
+  color: #ffd98a;
+  border: 1px solid rgba(255, 201, 77, 0.35);
+  background: rgba(41, 19, 31, 0.66);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  clip-path: polygon(7px 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%, 0 7px);
+  transition: background 160ms ease, border-color 160ms ease;
+}
+
+.account-button:hover {
+  border-color: #ffc94d;
+  background: rgba(70, 30, 35, 0.78);
+}
+
+.menu-stage {
+  position: relative;
+  isolation: isolate;
+}
+
+/* Faint drafting-grid behind the whole menu for an engineered feel. */
+.menu-stage::after {
+  content: "";
+  position: absolute;
+  z-index: -2;
+  inset: 0;
+  background-image: var(--ds-grid);
+  background-size: 46px 46px;
+  mask-image: radial-gradient(ellipse at 50% 38%, black 0%, transparent 78%);
+  -webkit-mask-image: radial-gradient(ellipse at 50% 38%, black 0%, transparent 78%);
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.menu-stage::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  top: 14%;
+  left: -5%;
+  width: 62%;
+  height: 72%;
+  background: radial-gradient(circle, rgba(255, 97, 26, 0.11), transparent 68%);
+  filter: blur(20px);
+  animation: menuGlow 5s ease-in-out infinite;
+}
+
+.menu-actions {
+  position: relative;
+  border-top: 1px solid rgba(255, 201, 77, 0.3);
+  border-bottom: 1px solid rgba(255, 201, 77, 0.18);
+  background:
+    var(--ds-hatch),
+    linear-gradient(90deg, rgba(25, 10, 24, 0.9), rgba(13, 6, 16, 0.72));
+  box-shadow: -22px 0 50px rgba(0, 0, 0, 0.3);
+}
+
+/* Glowing ember rivets down the left rail of the action panel. */
+.menu-actions::before {
+  content: "";
+  position: absolute;
+  top: 12px;
+  bottom: 12px;
+  left: 0;
+  width: 2px;
+  background: linear-gradient(180deg, transparent, rgba(255, 140, 40, 0.8) 20%, rgba(255, 140, 40, 0.8) 80%, transparent);
+  box-shadow: 0 0 14px rgba(255, 120, 30, 0.5);
+}
+
+.primary-menu-action,
+.secondary-menu-action {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  text-align: left;
+  border-bottom: 1px solid rgba(255, 201, 77, 0.15);
+  transition: background 180ms ease, padding 180ms ease;
+}
+
+.primary-menu-action {
+  padding: 18px 20px;
+  background:
+    linear-gradient(90deg, rgba(255, 220, 160, 0.1), transparent 46%),
+    linear-gradient(100deg, rgba(198, 49, 11, 0.84), rgba(91, 20, 20, 0.4));
+  box-shadow: inset 3px 0 0 #ff8a2a;
+}
+
+.primary-menu-action::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  background: linear-gradient(90deg, rgba(255, 170, 70, 0.22), transparent 70%);
+  transition: width 240ms ease;
+}
+
+.primary-menu-action:hover::after {
+  width: 100%;
+}
+
+.primary-menu-action small,
+.secondary-menu-action small {
+  display: block;
+  margin-bottom: 1px;
+  color: rgba(255, 218, 160, 0.6);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+}
+
+.primary-menu-action strong {
+  display: block;
+  font-family: var(--font-display);
+  color: #fff0d3;
+  font-size: 36px;
+  line-height: 0.9;
+  letter-spacing: 0.08em;
+}
+
+.secondary-menu-action {
+  min-height: 64px;
+  padding: 12px 20px;
+}
+
+.secondary-menu-action strong {
+  display: block;
+  font-family: var(--font-display);
+  color: #f4dec1;
+  font-size: 21px;
+  letter-spacing: 0.06em;
+}
+
+.primary-menu-action:hover,
+.secondary-menu-action:hover {
+  padding-left: 27px;
+  background-color: rgba(255, 123, 36, 0.12);
+}
+
+.action-arrow {
+  font-family: Georgia, serif;
+  color: #ffd166;
+  font-size: 34px;
+  transition: transform 180ms ease;
+}
+
+.primary-menu-action:hover .action-arrow {
+  transform: translateX(7px);
+}
+
+/* ---------- dragon selection ---------- */
+.dragon-choice {
+  position: relative;
+  display: flex;
+  min-height: 480px;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 18px;
+  border: 1px solid rgba(255, 205, 130, 0.18);
+  background:
+    radial-gradient(circle at 50% 32%, color-mix(in srgb, var(--dragon-accent) 16%, transparent), transparent 38%),
+    linear-gradient(180deg, rgba(29, 14, 29, 0.8), rgba(10, 5, 14, 0.93));
+  clip-path: polygon(12px 0, calc(100% - 12px) 0, 100% 12px, 100% calc(100% - 12px), calc(100% - 12px) 100%, 12px 100%, 0 calc(100% - 12px), 0 12px);
+  transition: border-color 180ms ease, box-shadow 180ms ease, filter 180ms ease;
+}
+
+.dragon-choice:hover,
+.dragon-choice.is-active {
+  border-color: var(--dragon-accent);
+  box-shadow: inset 0 0 35px color-mix(in srgb, var(--dragon-accent) 9%, transparent), 0 0 28px color-mix(in srgb, var(--dragon-accent) 16%, transparent);
+}
+
+.dragon-choice:not(.is-active) {
+  filter: saturate(0.78);
+}
+
+.dragon-orbit {
+  position: absolute;
+  width: 150px;
+  height: 150px;
+  border: 1px solid;
+  border-radius: 50%;
+  opacity: 0.25;
+  animation: orbitSpin 12s linear infinite;
+}
+
+.dragon-orbit::before,
+.dragon-orbit::after {
+  content: "";
+  position: absolute;
+  inset: 14px;
+  border: 1px dashed currentColor;
+  border-radius: 50%;
+}
+
+.dragon-orbit::after {
+  inset: 34px;
+  border-style: solid;
+}
+
+.selected-rune {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  padding: 3px 7px;
+  color: #fff8df;
+  border: 1px solid var(--dragon-accent);
+  background: color-mix(in srgb, var(--dragon-accent) 22%, #120913);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+}
+
+/* ---------- mode and level selection ---------- */
+.mode-choice {
+  position: relative;
+  display: flex;
+  min-height: 340px;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+  padding: 26px;
+  text-align: left;
+  border: 1px solid rgba(255, 205, 130, 0.24);
+  background:
+    var(--ds-hatch),
+    linear-gradient(150deg, rgba(39, 15, 29, 0.9), rgba(10, 5, 15, 0.95));
+  clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
+  transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+}
+
+.mode-choice::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.16;
+  background: radial-gradient(circle at 80% 15%, var(--mode-color), transparent 42%);
+}
+
+.mode-choice::after {
+  /* Diagonal hazard striping that fades in on hover. */
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 6px;
+  opacity: 0;
+  background: repeating-linear-gradient(-45deg, var(--mode-color) 0 10px, transparent 10px 20px);
+  transition: opacity 220ms ease;
+}
+
+.mode-endless {
+  --mode-color: #ff6b1a;
+}
+
+.mode-levels {
+  --mode-color: #b44dff;
+}
+
+.mode-choice:hover {
+  transform: translateY(-4px);
+  border-color: var(--mode-color);
+  box-shadow: 0 0 40px color-mix(in srgb, var(--mode-color) 24%, transparent), inset 0 0 50px color-mix(in srgb, var(--mode-color) 8%, transparent);
+}
+
+.mode-choice:hover::after {
+  opacity: 0.85;
+}
+
+.mode-choice h3 {
+  color: #fff0d5;
+}
+
+.mode-choice p {
+  max-width: 420px;
+  margin-top: 12px;
+  color: rgba(227, 199, 158, 0.7);
+  line-height: 1.55;
+}
+
+.mode-number {
+  position: absolute;
+  top: -20px;
+  right: 16px;
+  color: rgba(255, 255, 255, 0.045);
+  font-family: var(--font-display);
+  font-size: 130px;
+  line-height: 1;
+}
+
+.mode-cta {
+  position: relative;
+  color: var(--mode-color);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+}
+
+.level-choice {
+  --level-color: #ff8a2a;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  min-height: 112px;
+  gap: 15px;
+  padding: 16px;
+  text-align: left;
+  border: 1px solid color-mix(in srgb, var(--level-color) 35%, transparent);
+  background: linear-gradient(100deg, color-mix(in srgb, var(--level-color) 11%, #160a18), rgba(11, 6, 15, 0.9));
+  clip-path: polygon(9px 0, 100% 0, 100% calc(100% - 9px), calc(100% - 9px) 100%, 0 100%, 0 9px);
+  transition: transform 160ms ease, border-color 160ms ease, filter 160ms ease;
+}
+
+.level-choice:not(.is-locked):hover {
+  z-index: 1;
+  transform: translateY(-3px);
+  border-color: var(--level-color);
+  filter: brightness(1.18);
+}
+
+.level-choice.is-locked {
+  cursor: not-allowed;
+  filter: grayscale(1) brightness(0.55);
+}
+
+.level-index {
+  color: var(--level-color);
+  font-family: var(--font-display);
+  font-size: 42px;
+}
+
+.level-choice small,
+.level-choice strong,
+.level-choice em {
+  display: block;
+}
+
+.level-choice small {
+  color: var(--level-color);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+}
+
+.level-choice strong {
+  color: #f8e4c7;
+  font-family: var(--font-display);
+  font-size: 25px;
+  line-height: 1.05;
+}
+
+.level-choice em {
+  color: rgba(227, 199, 158, 0.58);
+  font-size: 11px;
+  font-style: normal;
+}
+
+.level-arrow {
+  color: var(--level-color);
+  font-family: monospace;
+  font-size: 18px;
+}
+
+/* ---------- account form ---------- */
+.auth-tab {
+  flex: 1;
+  padding: 10px;
+  color: rgba(231, 203, 163, 0.48);
+  border-bottom: 2px solid transparent;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+}
+
+.auth-tab.active {
+  color: #ffc94d;
+  border-bottom-color: #ff8a2a;
+}
+
+.auth-label {
+  display: block;
+  margin-top: 14px;
+  color: rgba(255, 214, 151, 0.7);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+}
+
+.auth-label input {
+  display: block;
+  width: 100%;
+  margin-top: 6px;
+  padding: 11px 12px;
+  color: #fff0d8;
+  outline: none;
+  border: 1px solid rgba(255, 197, 105, 0.28);
+  border-radius: 0;
+  background: rgba(5, 3, 8, 0.7);
+  font-family: var(--font-ui);
+  font-size: 15px;
+  letter-spacing: normal;
+  user-select: text;
+}
+
+.auth-label input:focus {
+  border-color: #ff9b3d;
+  box-shadow: 0 0 0 2px rgba(255, 107, 26, 0.12);
+}
+
+.auth-message,
+.setup-note {
+  margin-top: 14px;
+  padding: 9px 10px;
+  color: #ffd79c;
+  border-left: 2px solid #ff8a2a;
+  background: rgba(255, 107, 26, 0.08);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.setup-note {
+  border-left-color: #b44dff;
+  background: rgba(180, 77, 255, 0.08);
+}
+
+/* ---------- game HUD ---------- */
+.hud-icon {
+  position: relative;
+  display: flex;
+  width: 38px;
+  height: 38px;
+  align-items: center;
+  justify-content: center;
+  color: #ffd98a;
+  border: 1px solid rgba(255, 193, 100, 0.35);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent 45%),
+    rgba(18, 8, 19, 0.84);
+  clip-path: polygon(7px 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%, 0 7px);
+  transition: color 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
+}
+
+.hud-icon:hover {
+  color: white;
+  border-color: #ffc94d;
+  box-shadow: 0 0 16px rgba(255, 150, 50, 0.4);
+}
+
+.dragon-switcher {
+  position: relative;
+  display: flex;
+  max-width: calc(100vw - 12px);
+  align-items: stretch;
+  overflow: hidden;
+  border: 1px solid rgba(255, 198, 108, 0.28);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 40%),
+    rgba(9, 4, 13, 0.92);
+  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 210, 140, 0.25);
+  clip-path: polygon(9px 0, calc(100% - 9px) 0, 100% 9px, 100% 100%, 0 100%, 0 9px);
+  backdrop-filter: blur(8px);
+}
+
+.mobile-fire-button {
+  --breath-color: #ff8a2a;
+  position: absolute;
+  right: max(12px, env(safe-area-inset-right));
+  bottom: calc(4.65rem + env(safe-area-inset-bottom));
+  z-index: 15;
+  display: none;
+  min-width: 104px;
+  min-height: 64px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  color: #fff1d8;
+  border: 1px solid color-mix(in srgb, var(--breath-color) 75%, white);
+  background: radial-gradient(circle at 50% 28%, color-mix(in srgb, var(--breath-color) 35%, transparent), rgba(13, 6, 15, 0.94) 72%);
+  box-shadow: 0 0 20px color-mix(in srgb, var(--breath-color) 38%, transparent), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  clip-path: polygon(10px 0, calc(100% - 10px) 0, 100% 10px, 100% calc(100% - 10px), calc(100% - 10px) 100%, 10px 100%, 0 calc(100% - 10px), 0 10px);
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.15em;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.mobile-fire-button:active {
+  filter: brightness(1.35);
+  transform: scale(0.96);
+  box-shadow: 0 0 30px color-mix(in srgb, var(--breath-color) 72%, transparent), inset 0 0 16px color-mix(in srgb, var(--breath-color) 30%, transparent);
+}
+
+.switch-dragon {
+  --dragon-accent: #ff8a2a;
+  position: relative;
+  display: flex;
+  min-width: 95px;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 7px 10px;
+  color: rgba(236, 211, 175, 0.52);
+  border-left: 1px solid rgba(255, 211, 140, 0.1);
+  font-size: 11px;
+  font-weight: 800;
+  transition: color 160ms ease, background 160ms ease;
+}
+
+.switch-dragon small {
+  display: none;
+}
+
+.switch-dragon.active {
+  min-width: 155px;
+  color: #fff0d6;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--dragon-accent) 24%, transparent), color-mix(in srgb, var(--dragon-accent) 8%, transparent));
+  box-shadow: inset 0 2px 0 var(--dragon-accent);
+}
+
+.switch-dragon.active small {
+  display: block;
+  color: var(--dragon-accent);
+  font-size: 8px;
+  letter-spacing: 0.1em;
+}
+
+.switch-arrow {
+  width: 34px;
+  color: #ffd98a;
+  font-family: Georgia, serif;
+  font-size: 28px;
+}
+
+.switch-arrow:disabled,
+.switch-dragon:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.switch-cooldown {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background: #ffc94d;
+  box-shadow: 0 0 8px #ff8a2a;
+  transition: width 80ms linear;
+}
+
+.pause-dragon {
+  --dragon-accent: #ff8a2a;
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 3px;
+  color: rgba(231, 207, 170, 0.58);
+  border: 1px solid rgba(255, 201, 110, 0.16);
+  background: rgba(9, 4, 13, 0.5);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.pause-dragon.active {
+  color: #fff0d8;
+  border-color: var(--dragon-accent);
+  box-shadow: inset 0 0 16px color-mix(in srgb, var(--dragon-accent) 18%, transparent);
+}
+
+/* ---------- responsive refinements ---------- */
+@keyframes menuGlow {
+  0%, 100% { opacity: 0.65; transform: scale(0.96); }
+  50% { opacity: 1; transform: scale(1.06); }
+}
+
+@keyframes orbitSpin {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 639px) {
+  .mobile-fire-button {
+    display: flex;
+  }
+
+  .menu-header {
+    min-height: 52px;
+  }
+
+  .primary-menu-action {
+    padding: 13px 16px;
+  }
+
+  .primary-menu-action strong {
+    font-size: 29px;
+  }
+
+  .secondary-menu-action {
+    min-height: 54px;
+    padding: 8px 15px;
+  }
+
+  .secondary-menu-action strong {
+    font-size: 18px;
+  }
+
+  .dragon-choice {
+    min-height: 400px;
+  }
+
+  .mode-choice {
+    min-height: 255px;
+    padding: 20px;
+  }
+
+  .mode-number {
+    font-size: 92px;
+  }
+
+  .dragon-switcher {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .switch-dragon {
+    min-width: 0;
+    flex: 1 1 0;
+    flex-direction: column;
+    gap: 0;
+    padding: 5px 3px;
+    font-size: 8px;
+  }
+
+  .switch-dragon.active {
+    min-width: 0;
+  }
+
+  .switch-dragon.active small {
+    display: none;
+  }
+
+  .switch-arrow {
+    width: 26px;
+    flex: 0 0 26px;
+    font-size: 22px;
+  }
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .mobile-fire-button {
+    display: flex;
+  }
+}
+
+@media (max-height: 560px) and (orientation: landscape) {
+  .menu-header {
+    min-height: 45px;
+    padding-top: 6px;
+    padding-bottom: 6px;
+  }
+
+  .menu-stage {
+    grid-template-columns: 1fr 0.8fr;
+    padding-top: 10px;
+    padding-bottom: 10px;
+  }
+
+  .menu-stage h1 {
+    font-size: clamp(3.4rem, 12vh, 5.5rem);
+  }
+
+  .menu-stage p {
+    margin-top: 10px;
+  }
+
+  .primary-menu-action,
+  .secondary-menu-action {
+    min-height: 0;
+    padding-top: 6px;
+    padding-bottom: 6px;
+  }
+
+  .primary-menu-action strong {
+    font-size: 24px;
+  }
+
+  .secondary-menu-action strong {
+    font-size: 16px;
+  }
+
+  .dragon-switcher {
+    transform: scale(0.86);
+    transform-origin: bottom center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ============================================================ */
+/*  Light mode refinements                                       */
+/* ============================================================ */
+:root[data-theme="light"] .btn-ember {
+  color: #fff8ec;
+}
+
+:root[data-theme="light"] .btn-stone {
+  color: #6b4a12;
+  background: linear-gradient(180deg, #fdf3df, #eedfc4);
+  border-color: rgba(150, 95, 30, 0.45);
+}
+
+:root[data-theme="light"] .hud-icon {
+  color: #6b4a12;
+  background: rgba(255, 252, 246, 0.9);
+  border-color: rgba(150, 95, 30, 0.35);
+}
+
+:root[data-theme="light"] .hud-label {
+  color: var(--ds-text-dim);
+}
+
+:root[data-theme="light"] .menu-header,
+:root[data-theme="light"] .menu-footer {
+  color: var(--ds-text-dim);
+}
+
+:root[data-theme="light"] .dragon-switcher {
+  background: rgba(255, 252, 246, 0.92);
+  border-color: rgba(150, 95, 30, 0.35);
+}
+
+:root[data-theme="light"] .switch-dragon {
+  color: var(--ds-text-faint);
+  border-left-color: rgba(150, 95, 30, 0.16);
+}
+
+:root[data-theme="light"] .switch-dragon.active {
+  color: #3a2a14;
+}
+
+:root[data-theme="light"] .mobile-fire-button {
+  color: #3a2a14;
+  background: radial-gradient(circle at 50% 28%, color-mix(in srgb, var(--breath-color) 28%, white), rgba(255, 252, 246, 0.94) 72%);
+}
+
+:root[data-theme="light"] .mode-choice,
+:root[data-theme="light"] .level-choice,
+:root[data-theme="light"] .dragon-choice {
+  color: var(--ds-text);
+}
+
+:root[data-theme="light"] .pause-dragon {
+  color: var(--ds-text-dim);
+  background: rgba(255, 252, 246, 0.7);
+}
+
+/* ============================================================ */
+/*  Theme toggle                                                 */
+/* ============================================================ */
+.theme-toggle {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 12px;
+  color: var(--ds-gold);
+  border: 1px solid var(--ds-border-soft);
+  background: var(--ds-chip);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  clip-path: polygon(7px 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%, 0 7px);
+  transition: color 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+}
+
+.theme-toggle:hover {
+  color: var(--ds-text);
+  border-color: var(--ds-gold);
+}
+
+/* ============================================================ */
+/*  Breath meter — shows lungs, not a gun clip                   */
+/* ============================================================ */
+@keyframes breathShimmer {
+  0% {
+    transform: translateX(-120%);
+  }
+  100% {
+    transform: translateX(320%);
+  }
+}
+
+.breath-meter {
+  position: relative;
+  width: min(230px, 46vw);
+  height: 9px;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid var(--ds-border-soft);
+  clip-path: polygon(4px 0, calc(100% - 4px) 0, 100% 100%, 0 100%);
+}
+
+/* Lung segment tick marks so the gauge reads as anatomy, not ammo. */
+.breath-meter::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(90deg, transparent 0 calc(10% - 1px), rgba(0, 0, 0, 0.5) calc(10% - 1px) 10%);
+  pointer-events: none;
+}
+
+:root[data-theme="light"] .breath-meter {
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.breath-meter-fill {
+  height: 100%;
+  transition: width 90ms linear, background 220ms ease;
+  background: linear-gradient(90deg, #ff8a2a, #ffd166);
+  box-shadow: 0 0 10px rgba(255, 150, 50, 0.85);
+}
+
+.breath-meter-fill.is-inhaling {
+  background: linear-gradient(90deg, #4fe0ff, #b2f5ff);
+  box-shadow: 0 0 10px rgba(79, 224, 255, 0.8);
+}
+
+.breath-meter-fill.is-blasting {
+  background: linear-gradient(90deg, #ff5a3c, #ffd166);
+  box-shadow: 0 0 14px rgba(255, 110, 40, 0.95);
+}
+
+.breath-meter-fill.is-winded {
+  background: linear-gradient(90deg, #64748b, #94a3b8);
+  box-shadow: none;
+}
+
+.breath-meter-output {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 40%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
+  opacity: 0;
+  animation: breathShimmer 0.9s linear infinite;
+  pointer-events: none;
+}
+
+/* ============================================================ */
+/*  Platform sign-in buttons                                     */
+/* ============================================================ */
+/* Forged-steel plates, dark in both themes so icons stay legible. */
+.platform-button {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  color: #f4efe6;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background:
+    repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.03) 0 1px, transparent 1px 6px),
+    linear-gradient(180deg, #221b2b, #120d18);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.09), 0 3px 12px rgba(0, 0, 0, 0.35);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  transition: transform 0.12s ease, background 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;
+}
+
+.platform-button::after {
+  content: "\2192";
+  margin-left: auto;
+  color: rgba(255, 210, 140, 0.5);
+  font-size: 16px;
+  transition: transform 0.16s ease, color 0.16s ease;
+}
+
+.platform-button:hover {
+  border-color: rgba(255, 170, 80, 0.55);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 4px 16px rgba(255, 120, 30, 0.22);
+  transform: translateY(-1px);
+}
+
+.platform-button:hover::after {
+  transform: translateX(4px);
+  color: #ffd166;
+}
+
+.platform-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ============================================================ */
+/*  Achievement toast                                            */
+/* ============================================================ */
+.achievement-toast {
+  position: fixed;
+  top: max(14px, env(safe-area-inset-top));
+  right: 14px;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 240px;
+  max-width: min(340px, 88vw);
+  padding: 11px 14px;
+  overflow: hidden;
+  color: #fff3d6;
+  background: linear-gradient(180deg, rgba(48, 22, 10, 0.97), rgba(22, 10, 6, 0.97));
+  border: 1px solid rgba(255, 195, 80, 0.55);
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.6), 0 0 24px rgba(255, 150, 50, 0.22);
+  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+}
+
+/* Left ember accent bar on the toast. */
+.achievement-toast::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 3px;
+  background: linear-gradient(180deg, var(--ds-gold), var(--ds-ember));
+  box-shadow: 0 0 14px rgba(255, 150, 50, 0.7);
+}
+
+/* Light sweep across the toast. */
+.achievement-toast::after {
+  content: "";
+  position: absolute;
+  top: -30%;
+  bottom: -30%;
+  left: 0;
+  width: 34%;
+  background: linear-gradient(90deg, transparent, rgba(255, 240, 200, 0.22), transparent);
+  animation: sheenSweep 2.4s ease-in-out infinite;
+  pointer-events: none;
+}
+
+:root[data-theme="light"] .achievement-toast {
+  color: #3a2a14;
+  background: linear-gradient(180deg, rgba(255, 246, 224, 0.98), rgba(250, 236, 205, 0.98));
+  border-color: rgba(150, 95, 30, 0.5);
+}
+
+.achievement-toast small {
+  color: #ffb347;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.2em;
+}
+
+:root[data-theme="light"] .achievement-toast small {
+  color: #a9700f;
+}
+
+/* ============================================================ */
+/*  Level grid for 12 realms                                     */
+/* ============================================================ */
+.realm-card {
+  --level-color: #ff8a2a;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px;
+  overflow: hidden;
+  text-align: left;
+  color: var(--ds-text);
+  border: 1px solid var(--ds-border-soft);
+  background:
+    var(--ds-hatch),
+    linear-gradient(180deg, color-mix(in srgb, var(--level-color) 16%, var(--ds-panel)), var(--ds-panel-2));
+  transition: transform 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;
+}
+
+/* Colored ember line tracing the top of each realm. */
+.realm-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--level-color), transparent);
+  opacity: 0.7;
+}
+
+/* Big ghosted realm number watermark. */
+.realm-card::after {
+  content: "";
+  position: absolute;
+  right: -6px;
+  bottom: -18px;
+  width: 74px;
+  height: 74px;
+  opacity: 0.06;
+  background:
+    radial-gradient(circle at center, var(--level-color) 0 46%, transparent 48%),
+    conic-gradient(from 0deg, var(--level-color), transparent 30%);
+  pointer-events: none;
+}
+
+.realm-card:not(.is-locked):hover {
+  transform: translateY(-4px);
+  border-color: var(--level-color);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.4), 0 0 24px color-mix(in srgb, var(--level-color) 24%, transparent);
+}
+
+.realm-card.is-locked {
+  opacity: 0.45;
+  cursor: not-allowed;
+  filter: saturate(0.4);
+}
+
+.realm-card .realm-index {
+  font-family: var(--font-display);
+  font-size: 30px;
+  line-height: 1;
+  color: var(--level-color);
+  text-shadow: 0 0 14px color-mix(in srgb, var(--level-color) 60%, transparent);
+}
+
+.realm-card .realm-stars {
+  display: flex;
+  gap: 2px;
+}
+
+/* ============================================================ */
+/*  Dragon roost grid for 8 dragons                              */
+/* ============================================================ */
+.roost-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media (min-width: 900px) {
+  .roost-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.roost-card {
+  --dragon-accent: #ff8a2a;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
+  overflow: hidden;
+  text-align: left;
+  color: var(--ds-text);
+  border: 1px solid var(--ds-border-soft);
+  background:
+    var(--ds-hatch),
+    radial-gradient(circle at 50% 30%, color-mix(in srgb, var(--dragon-accent) 20%, transparent), transparent 44%),
+    linear-gradient(180deg, color-mix(in srgb, var(--dragon-accent) 12%, var(--ds-panel)), var(--ds-panel-2));
+  transition: transform 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;
+}
+
+/* Elemental aura ring behind the dragon preview. */
+.roost-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 34%, color-mix(in srgb, var(--dragon-accent) 16%, transparent), transparent 40%);
+  opacity: 0.8;
+  pointer-events: none;
+}
+
+.roost-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--dragon-accent);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4), 0 0 26px color-mix(in srgb, var(--dragon-accent) 22%, transparent);
+}
+
+.roost-card.is-active {
+  border-color: var(--dragon-accent);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--dragon-accent) 70%, transparent),
+    0 0 26px color-mix(in srgb, var(--dragon-accent) 40%, transparent),
+    inset 0 0 22px color-mix(in srgb, var(--dragon-accent) 14%, transparent);
+}
+
+.roost-card.is-locked {
+  opacity: 0.5;
+  filter: saturate(0.5);
+}
+
+.roost-card .rarity-tag {
+  position: relative;
+  align-self: flex-start;
+  padding: 3px 7px;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--dragon-accent) 100%, white), var(--dragon-accent));
+  clip-path: polygon(4px 0, 100% 0, 100% calc(100% - 4px), calc(100% - 4px) 100%, 0 100%, 0 4px);
+  box-shadow: 0 2px 10px color-mix(in srgb, var(--dragon-accent) 45%, transparent);
+}
+
+.roost-card .breath-tag {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  color: var(--dragon-accent);
+}
+
+/* Wider switcher for the 8-dragon roster. */
+@media (max-width: 639px) {
+  .switch-dragon span {
+    display: none;
+  }
+
+  .switch-dragon.active span {
+    display: block;
+    font-size: 8px;
+  }
+}

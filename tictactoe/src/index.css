@@ -1,0 +1,220 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --font-sans: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    --font-display: "Cinzel", Georgia, serif;
+  }
+
+  html,
+  body,
+  #root {
+    min-height: 100%;
+    min-height: 100dvh;
+    font-family: var(--font-sans);
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  button {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+.font-display-dragon {
+  font-family: var(--font-display);
+  letter-spacing: 0.01em;
+}
+
+.font-tabular {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Ambient background textures */
+.bg-dot-grid {
+  background-image: radial-gradient(rgba(15, 23, 42, 0.08) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+
+.bg-dot-grid-dark {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.055) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* Dragon scale overlay pattern (used as inline svg background) */
+.dragon-panel-scales {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'><path d='M0 12 Q 6 -2, 12 12 Q 18 -2, 24 12' stroke='white' stroke-opacity='0.06' stroke-width='0.7' fill='none' stroke-linecap='round'/></svg>");
+  background-size: 24px 24px;
+  background-position: center;
+  pointer-events: none;
+}
+
+/* Claw-mark accent at top-left of dragon panels */
+.dragon-claw-accent::before,
+.dragon-claw-accent::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+  background: linear-gradient(to bottom, var(--claw-color, rgba(255, 180, 60, 0.45)), transparent);
+  border-radius: 999px;
+}
+.dragon-claw-accent::before {
+  top: -4px;
+  left: 16px;
+  width: 2px;
+  height: 22px;
+  transform: rotate(-12deg);
+}
+.dragon-claw-accent::after {
+  top: -4px;
+  left: 22px;
+  width: 2px;
+  height: 20px;
+  transform: rotate(-4deg);
+}
+
+.mask-radial-fade {
+  -webkit-mask-image: radial-gradient(ellipse at 50% 35%, black 30%, transparent 78%);
+  mask-image: radial-gradient(ellipse at 50% 35%, black 30%, transparent 78%);
+}
+
+/* Slim scrollbars for logs and dialogs */
+.thin-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.45) transparent;
+}
+.thin-scroll::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.thin-scroll::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.45);
+  border-radius: 999px;
+}
+
+/* ---------- Keyframes ---------- */
+@keyframes drawStroke {
+  from { stroke-dashoffset: 160; opacity: 0.35; }
+  to { stroke-dashoffset: 0; opacity: 1; }
+}
+
+@keyframes popPiece {
+  0% { transform: scale(0.76); opacity: 0; }
+  70% { transform: scale(1.05); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes strikeLine {
+  from { stroke-dashoffset: 560; }
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes emberFloat {
+  0% { transform: translateY(0) translateX(0) scale(1); opacity: 0; }
+  20% { opacity: 0.55; }
+  80% { opacity: 0.35; }
+  100% { transform: translateY(-90px) translateX(14px) scale(0.5); opacity: 0; }
+}
+
+@keyframes overlayIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes cardRise {
+  from { opacity: 0; transform: translateY(14px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(12px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes floatSlow {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(18px, -22px, 0) scale(1.05); }
+}
+
+@keyframes confettiFall {
+  0% { transform: translateY(-20px) rotate(0deg); opacity: 0; }
+  10% { opacity: 1; }
+  100% { transform: translateY(340px) rotate(540deg); opacity: 0; }
+}
+
+/* ---------- Animation utilities ---------- */
+.animate-draw-stroke {
+  stroke-dasharray: 160;
+  stroke-dashoffset: 0;
+  animation: drawStroke 0.26s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.animate-pop-piece {
+  animation: popPiece 0.28s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.animate-strike-line {
+  stroke-dasharray: 560;
+  stroke-dashoffset: 0;
+  animation: strikeLine 0.38s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.animate-ember {
+  animation: emberFloat var(--ember-duration, 6s) ease-in-out infinite;
+  animation-delay: var(--ember-delay, 0s);
+}
+
+.animate-overlay-in {
+  animation: overlayIn 0.35s ease-out 0.55s both;
+}
+
+.animate-card-rise {
+  animation: cardRise 0.45s cubic-bezier(0.22, 1, 0.36, 1) 0.65s both;
+}
+
+.animate-toast-in {
+  animation: toastIn 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animate-fade-up {
+  animation: fadeUp 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: var(--d, 0s);
+}
+
+.animate-float-slow {
+  animation: floatSlow 9s ease-in-out infinite;
+}
+
+.animate-confetti {
+  animation: confettiFall var(--dur, 2.6s) ease-in var(--delay, 0s) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* User preference: animations turned off in Settings */
+.reduce-motion *,
+.reduce-motion *::before,
+.reduce-motion *::after {
+  animation-duration: 0.001ms !important;
+  animation-delay: 0s !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
+}

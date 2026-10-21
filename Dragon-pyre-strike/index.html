@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <script>
+      // Applies the stored theme before first paint, so there's no flash of
+      // the wrong theme on reload. Dark (the full "Dragonforge" gaming look) is
+      // the default; light only applies if the person chose it on a previous visit.
+      (function () {
+        var t = 'dark'
+        try {
+          if (localStorage.getItem('dracopyre:theme') === '"light"') t = 'light'
+        } catch (e) {}
+        document.documentElement.setAttribute('data-theme', t)
+      })()
+    </script>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preload" as="image" href="/images/hero-dragon.webp" type="image/webp" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0a080a" />
+    <title>DracoPyre Strike — One Realm. Every Game.</title>
+    <meta name="description" content="Free games from across the Realm. Instant play. Anywhere. Ten dragon-forged browser games, playable instantly on DracoPyre Strike." />
+    <meta property="og:title" content="DracoPyre Strike — One Realm. Every Game." />
+    <meta property="og:description" content="Free games from across the Realm. Instant play. Anywhere." />
+    <meta property="og:image" content="/logo-full.png" />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

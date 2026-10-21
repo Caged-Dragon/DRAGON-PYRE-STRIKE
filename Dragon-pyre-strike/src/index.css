@@ -1,0 +1,454 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* ---- DracoPyre Strike design tokens (single source of truth for theme colors) ----
+     Colorful/light is the default theme -- vivid, energetic, built for the
+     game art and gradients to pop. Dark mode is an explicit opt-in (see
+     ThemeToggle / useTheme) applied via [data-theme="dark"] below, which
+     overrides every variable in this block. Nothing outside this file
+     should ever hardcode a theme color. */
+  --color-bg: 253 250 246;           /* Daylight -- soft warm white */
+  --color-surface: 255 255 255;      /* card / surface background */
+  --color-surface-2: 245 236 227;    /* raised surface / hover */
+  --color-primary: 220 38 38;        /* Dragonfire -- signature red */
+  --color-primary-2: 234 88 12;      /* Blazeorange -- deepened for contrast on white */
+  --color-secondary: 180 83 9;       /* Hoardgold -- deepened amber for contrast on white */
+  --color-text: 26 15 13;
+  --color-text-muted: 90 68 62;      /* warm dark gray body text on light */
+  --color-muted: 158 138 128;        /* warm mid gray -- tertiary text, borders */
+  --color-success: 21 128 61;
+  --color-warning: 180 83 9;
+  --color-danger: 190 18 60;         /* crimson -- distinct from primary red, HOT badge / destructive */
+}
+
+[data-theme='dark'] {
+  --color-bg: 10 8 10;               /* Void -- near-black with a warm ember undertone */
+  --color-surface: 24 16 16;         /* Ember Ash -- card/surface background */
+  --color-surface-2: 34 21 19;       /* Ember Ash 2 -- raised surface / hover */
+  --color-primary: 220 38 38;        /* Dragonfire -- signature red */
+  --color-primary-2: 249 115 22;     /* Blazeorange -- flame tone */
+  --color-secondary: 245 158 11;     /* Hoardgold -- molten gold accent */
+  --color-text: 255 255 255;
+  --color-text-muted: 224 205 197;   /* warm light gray body text on dark */
+  --color-muted: 148 120 112;        /* warm gray -- tertiary text, borders */
+  --color-success: 34 197 94;
+  --color-warning: 245 158 11;
+  --color-danger: 239 68 68;         /* alarm red -- HOT badge / destructive */
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+html {
+  color-scheme: light;
+}
+html[data-theme='dark'] {
+  color-scheme: dark;
+}
+
+body {
+  @apply bg-bg text-text font-sans antialiased;
+  background-image:
+    radial-gradient(ellipse 70% 45% at 20% -10%, rgb(var(--color-primary) / 0.16), transparent 60%),
+    radial-gradient(ellipse 60% 40% at 100% 0%, rgb(var(--color-secondary) / 0.13), transparent 55%),
+    radial-gradient(circle at 1px 1px, rgb(var(--color-text) / 0.05) 1px, transparent 0);
+  background-size: auto, auto, 28px 28px;
+  background-attachment: fixed, fixed, fixed;
+  background-repeat: no-repeat, no-repeat, repeat;
+  transition: background-color 200ms ease;
+}
+
+h1, h2, h3, h4 {
+  @apply font-display;
+  letter-spacing: -0.01em;
+}
+
+::selection {
+  background: rgb(var(--color-primary) / 0.35);
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: rgb(var(--color-surface));
+}
+::-webkit-scrollbar-thumb {
+  background: rgb(var(--color-muted) / 0.6);
+  border-radius: 8px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgb(var(--color-primary));
+}
+
+:focus-visible {
+  outline: 2px solid rgb(var(--color-secondary));
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ---- Reusable utility classes (kept intentionally small) ---- */
+
+.glass {
+  background: rgb(var(--color-surface) / 0.72);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid rgb(var(--color-text) / 0.08);
+}
+
+.text-gradient {
+  background: linear-gradient(90deg, rgb(var(--color-primary)), rgb(var(--color-secondary)));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Scoreboard numerals — the site's tabular-mono treatment for every stat,
+   score, rating, timer and play count. This is the recurring "signature"
+   detail tying the whole UI back to an arcade scoreboard. */
+.stat-mono {
+  @apply font-mono tabular-nums tracking-tight;
+}
+
+.eyebrow {
+  @apply font-mono text-[11px] font-medium uppercase tracking-[0.18em] text-secondary;
+}
+
+.badge {
+  @apply stat-mono inline-flex items-center rounded-md px-1.5 py-0.5 text-[10px] font-bold tracking-wide;
+}
+
+.btn-focus {
+  @apply outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-2 focus-visible:ring-offset-bg;
+}
+
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 100;
+  background: rgb(var(--color-primary));
+  color: white;
+  padding: 0.75rem 1rem;
+  border-radius: 0 0 0.5rem 0;
+  font-weight: 600;
+}
+.skip-link:focus {
+  left: 0;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+@keyframes markIn {
+  0% {
+    transform: scale(0.4);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+.mark-in {
+  animation: markIn 220ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  transform-origin: center;
+}
+
+@keyframes lineIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.line-in {
+  animation: lineIn 280ms ease-out 120ms both;
+}
+
+@keyframes popIn {
+  0% {
+    transform: scale(0.55);
+    opacity: 0;
+  }
+  70% {
+    transform: scale(1.08);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+.pop-in {
+  animation: popIn 260ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes shake {
+  10%, 90% { transform: translateX(-1px); }
+  20%, 80% { transform: translateX(2px); }
+  30%, 50%, 70% { transform: translateX(-3px); }
+  40%, 60% { transform: translateX(3px); }
+}
+.shake {
+  animation: shake 400ms ease-in-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* =====================================================================
+   DRAGONFORGE — fluid layout system + game-UI animation layer
+   Everything below is continuous: sizes are clamp()/vw based and layouts
+   use auto-fill grids + container queries, so there are no breakpoint
+   "jumps" — the UI re-flows smoothly at every pixel width.
+   ===================================================================== */
+:root {
+  --gutter: clamp(1rem, 0.35rem + 2.8vw, 3.25rem);
+  --section-y: clamp(1.75rem, 0.9rem + 3.2vw, 4.5rem);
+  --fs-hero: clamp(2.2rem, 1.05rem + 5.4vw, 5.4rem);
+  --fs-h2: clamp(1.3rem, 1rem + 1.4vw, 2.2rem);
+  --fs-lead: clamp(1rem, 0.92rem + 0.5vw, 1.35rem);
+  --gap: clamp(0.65rem, 0.3rem + 1.3vw, 1.5rem);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+body {
+  background-color: rgb(var(--color-bg));
+  overflow-x: clip;
+}
+html { scroll-behavior: smooth; }
+
+.container-fluid { width: min(100% - 2 * var(--gutter), 92rem); margin-inline: auto; }
+.px-fluid { padding-inline: var(--gutter); }
+.py-section { padding-block: var(--section-y); }
+
+.fluid-grid {
+  display: grid;
+  gap: var(--gap);
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, clamp(9.25rem, 6.4rem + 10.5vw, 15rem)), 1fr));
+}
+.fluid-grid.cats {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, clamp(9.5rem, 6.5rem + 9vw, 14rem)), 1fr));
+}
+
+/* Light theme: keep the realm art as a faint watermark behind the daylight UI */
+[data-theme='light'] .rb-root { opacity: 0.2; }
+
+/* ---------- glass + type ---------- */
+.glass {
+  background: rgb(var(--color-surface) / 0.62);
+  backdrop-filter: blur(18px) saturate(1.35);
+  -webkit-backdrop-filter: blur(18px) saturate(1.35);
+  border: 1px solid rgb(var(--color-text) / 0.09);
+}
+.title-forge {
+  font-family: Cinzel, 'Space Grotesk', Georgia, serif;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  background: linear-gradient(100deg, #fff1c4 0%, #ffc857 28%, #ff7a2f 58%, #ff3d2e 85%, #ffc857 100%);
+  background-size: 220% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 4px 24px rgb(255 90 30 / 0.35));
+  animation: forge-shine 7s ease-in-out infinite;
+}
+[data-theme='light'] .title-forge { filter: none; background-image: linear-gradient(100deg, #b45309, #dc2626 60%, #9a3412); }
+@keyframes forge-shine { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+
+.text-gradient {
+  background-size: 200% 100%;
+  animation: forge-shine 6s ease-in-out infinite;
+}
+
+/* ---------- scroll reveal ---------- */
+.reveal {
+  opacity: 0;
+  transform: translate3d(0, 26px, 0) scale(0.97);
+  transition: opacity 0.7s var(--ease-out), transform 0.7s var(--ease-out);
+  transition-delay: var(--d, 0ms);
+  will-change: opacity, transform;
+}
+.reveal.is-visible { opacity: 1; transform: none; will-change: auto; }
+.reveal-left { transform: translate3d(-34px, 0, 0); }
+.reveal-right { transform: translate3d(34px, 0, 0); }
+
+/* ---------- route transition ---------- */
+@keyframes route-in {
+  from { opacity: 0; transform: translate3d(0, 14px, 0); }
+  to { opacity: 1; transform: none; }
+}
+.route-in { animation: route-in 0.55s var(--ease-out) both; }
+
+/* ---------- scroll progress ---------- */
+.scroll-progress {
+  position: fixed; top: 0; left: 0; right: 0; height: 3px; z-index: 70;
+  transform-origin: 0 50%; transform: scaleX(var(--p, 0));
+  background: linear-gradient(90deg, #ffb347, #ff5a2f, #e11d48);
+  box-shadow: 0 0 14px rgb(255 90 47 / 0.75);
+  pointer-events: none;
+}
+
+/* ---------- buttons ---------- */
+.btn-glow { position: relative; overflow: hidden; isolation: isolate; transition: transform 0.25s var(--ease-out), box-shadow 0.25s, filter 0.25s; }
+.btn-glow::before {
+  content: ''; position: absolute; inset: 0; z-index: -1;
+  background: linear-gradient(115deg, transparent 20%, rgb(255 255 255 / 0.5) 46%, transparent 70%);
+  transform: translateX(-130%); transition: transform 0.75s var(--ease-out);
+}
+.btn-glow:hover { transform: translateY(-2px) scale(1.035); filter: brightness(1.08); }
+.btn-glow:hover::before { transform: translateX(130%); }
+.btn-glow:active { transform: translateY(0) scale(0.97); }
+.btn-pulse { animation: cta-pulse 2.6s ease-out infinite; }
+@keyframes cta-pulse {
+  0% { box-shadow: 0 0 0 0 rgb(var(--color-primary) / 0.55), 0 8px 32px -8px rgb(var(--color-primary) / 0.55); }
+  70%, 100% { box-shadow: 0 0 0 18px rgb(var(--color-primary) / 0), 0 8px 32px -8px rgb(var(--color-primary) / 0.55); }
+}
+
+/* ---------- animated gradient border + pointer spotlight + tilt ---------- */
+@property --a { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
+@keyframes spin-a { to { --a: 360deg; } }
+
+.game-card, .tilt {
+  position: relative;
+  transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translate3d(0, var(--lift, 0px), 0);
+  transition: transform 0.35s var(--ease-out), box-shadow 0.35s, border-color 0.35s;
+  transform-style: preserve-3d;
+}
+.game-card:hover, .tilt:hover { --lift: -6px; transition: transform 0.12s linear, box-shadow 0.35s, border-color 0.35s; }
+.glow-border::after {
+  content: ''; position: absolute; inset: 0; border-radius: inherit; padding: 1.5px; pointer-events: none; z-index: 3;
+  background: conic-gradient(from var(--a), transparent 0 52%, rgb(var(--color-secondary)) 72%, rgb(var(--color-primary)) 88%, transparent 100%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor; mask-composite: exclude;
+  opacity: 0; transition: opacity 0.35s; animation: spin-a 3.2s linear infinite;
+}
+.glow-border:hover::after, .glow-border:focus-within::after { opacity: 1; }
+.spot::before {
+  content: ''; position: absolute; inset: 0; z-index: 2; border-radius: inherit; pointer-events: none;
+  background: radial-gradient(280px circle at var(--mx, 50%) var(--my, 50%), rgb(var(--color-secondary) / 0.22), transparent 62%);
+  opacity: 0; transition: opacity 0.3s;
+}
+.spot:hover::before { opacity: 1; }
+.game-card { background-color: rgb(var(--color-surface) / 0.92); container-type: inline-size; container-name: card; }
+.game-card:hover { box-shadow: 0 18px 48px -14px rgb(var(--color-primary) / 0.55), 0 0 0 1px rgb(var(--color-primary) / 0.35); }
+@container card (max-width: 11.5rem) {
+  .game-card .gc-title { font-size: 0.8125rem; }
+  .game-card .gc-meta { font-size: 0.6875rem; }
+}
+
+/* ---------- marquee ---------- */
+.marquee { overflow: hidden; -webkit-mask-image: linear-gradient(90deg, transparent, #000 9%, #000 91%, transparent); mask-image: linear-gradient(90deg, transparent, #000 9%, #000 91%, transparent); }
+.marquee-track { display: flex; width: max-content; animation: marquee 42s linear infinite; }
+.marquee:hover .marquee-track { animation-play-state: paused; }
+.marquee-group { display: flex; align-items: center; gap: clamp(1.5rem, 4vw, 3.5rem); padding-right: clamp(1.5rem, 4vw, 3.5rem); }
+@keyframes marquee { to { transform: translateX(-50%); } }
+
+/* ---------- header (container-query driven, no viewport breakpoints) ---------- */
+.hdr { container-type: inline-size; container-name: hdr; position: sticky; top: 0; z-index: 40; border-bottom: 1px solid transparent; transition: background 0.35s, box-shadow 0.35s, border-color 0.35s, backdrop-filter 0.35s; }
+.hdr[data-scrolled='true'] {
+  background: rgb(var(--color-bg) / 0.72);
+  backdrop-filter: blur(18px) saturate(1.5); -webkit-backdrop-filter: blur(18px) saturate(1.5);
+  border-color: rgb(var(--color-text) / 0.09);
+  box-shadow: 0 12px 34px -14px rgb(0 0 0 / 0.65);
+}
+.hdr-nav, .hdr-search-wide, .hdr-label { display: none; }
+.hdr-burger, .hdr-search-icon { display: inline-flex; }
+.hdr-m-search { display: block; }
+.hdr-mobile { display: block; }
+@container hdr (max-width: 23rem) { .hdr-heart { display: none; } }
+@container hdr (min-width: 71rem) { .hdr-nav { display: flex; } .hdr-burger, .hdr-mobile { display: none; } }
+@container hdr (min-width: 36rem) { .hdr-search-wide { display: flex; } .hdr-search-icon, .hdr-m-search { display: none; } .hdr-label { display: inline; } }
+@container hdr (max-width: 30rem) { .logo-word { display: none; } }
+.nav-link { position: relative; }
+.nav-link::after {
+  content: ''; position: absolute; left: 0.75rem; right: 0.75rem; bottom: 0.2rem; height: 2px; border-radius: 2px;
+  background: linear-gradient(90deg, rgb(var(--color-primary)), rgb(var(--color-secondary)));
+  transform: scaleX(0); transform-origin: left; transition: transform 0.4s var(--ease-out);
+}
+.nav-link:hover::after, .nav-link[aria-current='page']::after { transform: scaleX(1); }
+.logo-glow img { transition: filter 0.4s, transform 0.4s var(--ease-out); }
+.logo-glow:hover img { filter: drop-shadow(0 0 14px rgb(255 90 40 / 0.9)); transform: scale(1.06) rotate(-2deg); }
+
+/* ---------- section headings ---------- */
+.section-title { position: relative; display: inline-block; font-size: var(--fs-h2); }
+.section-title::after {
+  content: ''; position: absolute; left: 0; bottom: -0.3em; height: 3px; width: 100%; border-radius: 3px;
+  background: linear-gradient(90deg, rgb(var(--color-primary)), rgb(var(--color-secondary)), transparent);
+  transform: scaleX(0); transform-origin: left; transition: transform 0.9s var(--ease-out) 0.25s;
+}
+.is-visible .section-title::after, .section-title.is-visible::after { transform: scaleX(1); }
+.eyebrow::before { content: ''; display: inline-block; width: 0.45rem; height: 0.45rem; margin-right: 0.55rem; border-radius: 50%; background: rgb(var(--color-primary)); box-shadow: 0 0 10px rgb(var(--color-primary)); animation: pulseGlow 2s ease-in-out infinite; vertical-align: 0.05em; }
+
+/* ---------- hero ---------- */
+.hero { position: relative; isolation: isolate; display: flex; align-items: center; min-height: clamp(31rem, 86svh, 56rem); overflow: hidden; }
+.hero-art {
+  position: absolute; inset: -4% -12% -4% 10%; z-index: -3;
+  background: url('/images/hero-dragon.webp') clamp(34%, 26% + 3.4vw, 62%) 20% / cover no-repeat;
+  animation: hero-kb 32s ease-in-out infinite alternate;
+}
+@keyframes hero-kb { from { transform: scale(1.02) translate3d(0, 0, 0); } to { transform: scale(1.12) translate3d(-1.5%, 1%, 0); } }
+.hero-veil {
+  position: absolute; inset: 0; z-index: -2;
+  background:
+    linear-gradient(90deg, rgb(var(--color-bg) / 0.62) 0, rgb(var(--color-bg) / 0.62) clamp(0%, 1500px - 150vw, 100%), rgb(var(--color-bg) / 0) calc(clamp(0%, 1500px - 150vw, 100%) + 38%)),
+    linear-gradient(90deg, rgb(var(--color-bg) / 0.92) 0, rgb(var(--color-bg) / 0.55) 38%, rgb(var(--color-bg) / 0.04) 78%),
+    linear-gradient(0deg, rgb(var(--color-bg)) 0, rgb(var(--color-bg) / 0) 34%),
+    linear-gradient(180deg, rgb(var(--color-bg) / 0.65) 0, transparent 22%);
+}
+.hero-inner { display: grid; gap: var(--gap); grid-template-columns: repeat(auto-fit, minmax(min(100%, 24rem), 1fr)); align-items: center; padding-block: var(--section-y); }
+.hero-title { font-size: var(--fs-hero); line-height: 1.02; }
+.hero-lead { font-size: var(--fs-lead); }
+.hero-card { transform-style: preserve-3d; }
+.hero-chip { display: inline-flex; align-items: center; gap: 0.4rem; border-radius: 999px; padding: 0.3rem 0.8rem; font-size: 0.75rem; font-weight: 700; background: rgb(var(--color-text) / 0.08); border: 1px solid rgb(var(--color-text) / 0.12); backdrop-filter: blur(8px); }
+.stat-tile { position: relative; overflow: hidden; border-radius: 1rem; padding: clamp(0.7rem, 0.4rem + 1vw, 1.2rem); text-align: center; background: rgb(var(--color-surface) / 0.55); border: 1px solid rgb(var(--color-text) / 0.09); backdrop-filter: blur(10px); transition: transform 0.35s var(--ease-out), border-color 0.35s; }
+.stat-tile:hover { transform: translateY(-4px); border-color: rgb(var(--color-primary) / 0.5); }
+.stat-tile b { display: block; font-family: Cinzel, serif; font-size: clamp(1.4rem, 1rem + 1.8vw, 2.4rem); line-height: 1; background: linear-gradient(180deg, #fff1c4, #ffb347 55%, #ff5a2f); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.stat-tile > span { display: block; margin-top: 0.4rem; font-size: clamp(0.62rem, 0.55rem + 0.25vw, 0.78rem); letter-spacing: 0.14em; text-transform: uppercase; color: rgb(var(--color-text-muted)); }
+.stat-grid { display: grid; gap: var(--gap); grid-template-columns: repeat(auto-fit, minmax(min(100%, 8.5rem), 1fr)); }
+
+/* ---------- animated thumbnails ---------- */
+.thumb-float { animation: thumb-float 5s ease-in-out infinite; }
+@keyframes thumb-float { 0%, 100% { transform: translate3d(0, 0, 0) rotate(0); } 50% { transform: translate3d(0, -6px, 0) rotate(2deg); } }
+.thumb-sheen { position: absolute; inset: 0; background: linear-gradient(115deg, transparent 30%, rgb(255 255 255 / 0.28) 48%, transparent 66%); transform: translateX(-120%); transition: transform 0.9s var(--ease-out); pointer-events: none; }
+.game-card:hover .thumb-sheen, .group:hover .thumb-sheen { transform: translateX(120%); }
+.thumb-ember { position: absolute; bottom: -6px; width: 4px; height: 4px; border-radius: 50%; background: #ffd27a; box-shadow: 0 0 8px 2px rgb(255 160 60 / 0.9); opacity: 0; animation: thumb-rise 4.5s ease-in infinite; }
+@keyframes thumb-rise { 0% { transform: translate3d(0, 0, 0); opacity: 0; } 15% { opacity: 0.95; } 100% { transform: translate3d(var(--dx, 8px), -120px, 0); opacity: 0; } }
+
+/* ---------- footer ---------- */
+.footer-forge { position: relative; background: linear-gradient(180deg, transparent, rgb(var(--color-bg) / 0.85) 40%); }
+.footer-forge::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, rgb(var(--color-primary)), rgb(var(--color-secondary)), rgb(var(--color-primary)), transparent); background-size: 200% 100%; animation: forge-shine 6s linear infinite; }
+.footer-grid { display: grid; gap: clamp(1.5rem, 1rem + 2vw, 3rem); grid-template-columns: repeat(auto-fit, minmax(min(100%, 11.5rem), 1fr)); }
+.link-slide { position: relative; display: inline-block; transition: color 0.25s, transform 0.3s var(--ease-out); }
+.link-slide:hover { transform: translateX(4px); }
+
+@media (hover: none) { .game-card, .tilt { transform: none !important; } .spot::before { display: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .reveal { opacity: 1; transform: none; transition: none; }
+  .hero-art, .title-forge, .marquee-track, .thumb-float, .thumb-ember, .btn-pulse, .glow-border::after { animation: none !important; }
+  html { scroll-behavior: auto; }
+}
