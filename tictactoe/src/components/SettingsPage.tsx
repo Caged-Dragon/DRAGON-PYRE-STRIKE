@@ -5,7 +5,6 @@ import {
   Check,
   Clock,
   Crosshair,
-  Crown,
   Database,
   Eye,
   Gamepad2,
@@ -63,7 +62,6 @@ interface SettingsPageProps {
   onUpdate: UpdateSetting;
   onSelectTheme: (theme: ThemeId) => void;
   onSelectRealm: (realm: DragonRealmId) => void;
-  onOpenPayment: () => void;
   onResetScores: () => void;
   onRestoreDefaults: () => void;
   onPreviewSound: () => void;
@@ -258,7 +256,6 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
   onUpdate,
   onSelectTheme,
   onSelectRealm,
-  onOpenPayment,
   onResetScores,
   onRestoreDefaults,
   onPreviewSound,
@@ -523,11 +520,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
       <Panel
         tokens={t}
         title="Theme"
-        subtitle={
-          subscription.isSubscribed
-            ? "Dragon Pass active — every realm unlocked"
-            : "Classic is free · Dragon needs the Dragon Pass"
-        }
+        subtitle="Classic and Dragon are both free — your choice follows you across the Realm"
         icon={<Palette className="h-4 w-4" />}
       >
         <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,16rem),1fr))] items-center gap-5">
@@ -761,55 +754,8 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
   );
 
   /* ---------------- Pass & data ---------------- */
-  const passTitle = subscription.isSubscribed
-    ? "Dragon Pass active"
-    : subscription.trialMatchesRemaining > 0
-    ? "Free trial running"
-    : "Dragon theme locked";
-  const passDetail = subscription.isSubscribed
-    ? `${subscription.plan[0].toUpperCase()}${subscription.plan.slice(1)} plan · ${
-        subscription.transactionId ?? "Sandbox"
-      }`
-    : subscription.trialMatchesRemaining > 0
-    ? `${subscription.trialMatchesRemaining} trial match${
-        subscription.trialMatchesRemaining === 1 ? "" : "es"
-      } left`
-    : "Unlock all 4 realms — test checkout, no real payment";
-
   const data = (
     <>
-      <Panel
-        tokens={t}
-        title="Dragon Pass"
-        subtitle="Premium Dragon theme"
-        icon={<Crown className="h-4 w-4" />}
-      >
-        <div className={`flex flex-wrap items-center justify-between gap-3 rounded-2xl p-3 ${t.inset}`}>
-          <div className="flex min-w-0 items-center gap-3">
-            <span
-              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${r.swatchGradient} text-white shadow-md`}
-            >
-              <Crown className="h-5 w-5" />
-            </span>
-            <div className="min-w-0">
-              <div className={`text-sm font-bold ${t.textStrong}`}>{passTitle}</div>
-              <div className={`truncate text-[11.5px] ${t.textMuted}`}>{passDetail}</div>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={onOpenPayment}
-            className={`inline-flex h-9 shrink-0 items-center gap-1.5 rounded-xl px-3.5 text-xs font-bold transition-all duration-200 cursor-pointer ${
-              subscription.isSubscribed
-                ? t.secondaryBtn
-                : "bg-gradient-to-r from-amber-400 to-orange-500 text-slate-950 shadow-[0_8px_20px_-10px_rgba(245,158,11,0.9)] hover:from-amber-300 hover:to-orange-400"
-            }`}
-          >
-            {subscription.isSubscribed ? "View receipt" : "Open test checkout"}
-          </button>
-        </div>
-      </Panel>
-
       <Panel
         tokens={t}
         title="Career Stats"

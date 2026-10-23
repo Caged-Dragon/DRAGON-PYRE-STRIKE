@@ -2,24 +2,12 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <script>
-      // Applies the stored theme before first paint, so there's no flash of
-      // the wrong theme on reload. Dark (the full "Dragonforge" gaming look) is
-      // the default; light only applies if the person chose it on a previous visit.
-      (function () {
-        var t = 'dark'
-        try {
-          if (localStorage.getItem('dracopyre:theme') === '"light"') t = 'light'
-        } catch (e) {}
-        document.documentElement.setAttribute('data-theme', t)
-      })()
-    </script>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="preload" as="image" href="/images/hero-dragon.webp" type="image/webp" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="theme-color" content="#0a080a" />
     <title>DracoPyre Strike — One Realm. Every Game.</title>
-    <meta name="description" content="Free games from across the Realm. Instant play. Anywhere. Ten dragon-forged browser games, playable instantly on DracoPyre Strike." />
+    <meta name="description" content="Free games from across the Realm. Instant play. Anywhere. Thirteen dragon-forged browser games, playable instantly on DracoPyre Strike." />
     <meta property="og:title" content="DracoPyre Strike — One Realm. Every Game." />
     <meta property="og:description" content="Free games from across the Realm. Instant play. Anywhere." />
     <meta property="og:image" content="/logo-full.png" />
@@ -31,6 +19,15 @@
       href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap"
       rel="stylesheet"
     />
+  
+    <!-- pwa:start -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="DracoPyre" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <!-- pwa:end -->
   </head>
   <body>
     <div id="root"></div>

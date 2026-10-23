@@ -1,5 +1,6 @@
 import { supabase } from './client';
 import { HUB_URL, SCORE_DIRECTION } from './config';
+import { getRealmTheme, withTheme } from './theme';
 
 /* ------------------------------------------------------------------ */
 /* helpers                                                             */
@@ -36,22 +37,10 @@ export interface RunResult {
 }
 
 type PendingRuns = Record<string, { score: number; meta?: Record<string, unknown> }>;
-const PENDING_KEY = 'dps-pending-runs';
 
-function readPending(): PendingRuns {
-  try {
-    return JSON.parse(localStorage.getItem(PENDING_KEY) || '{}') as PendingRuns;
-  } catch {
-    return {};
-  }
-}
-function writePending(p: PendingRuns) {
-  try {
-    localStorage.setItem(PENDING_KEY, JSON.stringify(p));
-  } catch {
-    /* storage unavailable */
-  }
-}
+// A guest's best run is held in MEMORY only (never written to the browser), so if they decide to sign in
+// before leaving the page it can still be posted to their new account. Refresh or close the tab and it is gone.
+let pending: PendingRuns = {};
 
 function isBetter(game: string, a: number, b: number) {
   return (SCORE_DIRECTION[game] ?? 'high') === 'high' ? a > b : a < b;
@@ -59,7 +48,7 @@ function isBetter(game: string, a: number, b: number) {
 
 /**
  * Report a finished run. Signed in → posted to the shared leaderboard.
- * Guest → the best run per game is remembered and posted automatically after login.
+ * Guest → nothing is stored; the best run is only held in memory in case they sign in before leaving.
  */
 export async function reportRun(
   game: string,
@@ -69,12 +58,8 @@ export async function reportRun(
   if (!Number.isFinite(score) || score < 0) return null;
   const uid = await currentUserId();
   if (!uid) {
-    const pending = readPending();
     const cur = pending[game];
-    if (!cur || isBetter(game, score, cur.score)) {
-      pending[game] = { score, meta };
-      writePending(pending);
-    }
+    if (!cur || isBetter(game, score, cur.score)) pending[game] = { score, meta };
     return null;
   }
   return serial(game, async () => {
@@ -92,13 +77,13 @@ export async function reportRun(
   });
 }
 
-/** Post any scores earned while signed out. */
+/** Post any scores earned in this page session while signed out. */
 export async function flushPendingRuns(): Promise<void> {
-  const pending = readPending();
-  const games = Object.keys(pending);
+  const batch = pending;
+  const games = Object.keys(batch);
   if (!games.length) return;
-  writePending({});
-  await Promise.all(games.map((g) => reportRun(g, pending[g].score, pending[g].meta)));
+  pending = {};
+  await Promise.all(games.map((g) => reportRun(g, batch[g].score, batch[g].meta)));
 }
 
 /** Marks a game as recently played (works for games without scores too). */
@@ -318,6 +303,50 @@ export async function isUsernameTaken(name: string): Promise<boolean> {
 }
 
 /* ------------------------------------------------------------------ */
+/* feedback (guests and signed-in players)                             */
+/* ------------------------------------------------------------------ */
+
+export type FeedbackCategory = 'suggestion' | 'bug' | 'praise' | 'general';
+
+export interface FeedbackInput {
+  /** Game slug the feedback is about; null/undefined = the Realm / hub in general. */
+  game?: string | null;
+  category: FeedbackCategory;
+  /** 1–5 stars, optional. */
+  rating?: number | null;
+  message: string;
+  /** Optional email so the studio can reply. */
+  contact?: string;
+}
+
+export const FEEDBACK_MAX_LENGTH = 2000;
+
+/** Saves feedback to the central database. Returns null on success, or a message to show the player. */
+export async function submitFeedback(input: FeedbackInput): Promise<string | null> {
+  const message = input.message.trim();
+  const rating = input.rating && input.rating >= 1 && input.rating <= 5 ? Math.round(input.rating) : null;
+  const contact = input.contact?.trim() || null;
+  if (!message && !rating) return 'Add a star rating or a short message first.';
+  if (message.length > FEEDBACK_MAX_LENGTH) return `Messages can be up to ${FEEDBACK_MAX_LENGTH.toLocaleString()} characters.`;
+  if (contact && !/^\S+@\S+\.\S+$/.test(contact)) return 'That email address does not look right.';
+
+  const { error } = await supabase.from('feedback').insert({
+    game_slug: input.game ?? null,
+    category: input.category,
+    rating,
+    message: message || null,
+    contact,
+    page: typeof window !== 'undefined' ? window.location.pathname.slice(0, 200) : null,
+    theme: getRealmTheme(),
+  });
+  if (!error) return null;
+  if (error.code === '54000') return 'You have sent a lot of feedback recently. Please try again in a little while.';
+  if (error.code === '23514' || error.code === '23503') return 'That feedback could not be accepted. Please check it and try again.';
+  console.warn('[dps] feedback not sent:', error.message);
+  return 'Could not send your feedback right now. Please try again.';
+}
+
+/* ------------------------------------------------------------------ */
 /* navigation between sites (same tab)                                 */
 /* ------------------------------------------------------------------ */
 
@@ -328,7 +357,7 @@ export async function leaveTo(url: string): Promise<void> {
   } catch {
     /* never block navigation */
   }
-  window.location.assign(url);
+  window.location.assign(withTheme(url));
 }
 
 /** "Exit" button target for every standalone game. */

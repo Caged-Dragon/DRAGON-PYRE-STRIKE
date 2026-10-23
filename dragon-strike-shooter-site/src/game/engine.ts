@@ -1,6 +1,7 @@
 import { Sfx } from "./audio";
 import { DRAGONS, dragonById, type DragonId, type HornStyle, type WingStyle } from "./dragons";
 import { levelById, MAX_LEVEL } from "./levels";
+import { store } from '../dps';
 
 export type ThemeName = "dark" | "light";
 export type BreathPhaseName = "idle" | "inhale" | "blast" | "recover" | "winded";
@@ -887,7 +888,7 @@ export class Engine {
     this.ctx = ctx;
     this.onHud = onHud;
     try {
-      this.hi = Number(localStorage.getItem("dragon-strike-hi") || 0) || 0;
+      this.hi = Number(store.getItem("dragon-strike-hi") || 0) || 0;
     } catch {
       this.hi = 0;
     }
@@ -2001,7 +2002,7 @@ export class Engine {
     this.flash = 0.5;
     if (this.score >= this.hi) {
       try {
-        localStorage.setItem("dragon-strike-hi", String(this.hi));
+        store.setItem("dragon-strike-hi", String(this.hi));
       } catch {
         /* ignore */
       }

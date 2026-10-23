@@ -102,6 +102,9 @@ export default function Header({ minimal = false }: HeaderProps) {
             <NavLink to="/new" className={linkClass}>
               New
             </NavLink>
+            <NavLink to="/store" className={linkClass}>
+              Store
+            </NavLink>
             <NavLink to="/leaderboard" className={linkClass}>
               Leaderboards
             </NavLink>
@@ -197,6 +200,9 @@ export default function Header({ minimal = false }: HeaderProps) {
           </Link>
           <Link to="/new" onClick={() => setMobileOpen(false)} className={mobileLinkClass}>
             New Games
+          </Link>
+          <Link to="/store" onClick={() => setMobileOpen(false)} className={mobileLinkClass}>
+            Store — install games
           </Link>
           <Link to="/leaderboard" onClick={() => setMobileOpen(false)} className={mobileLinkClass}>
             Leaderboards

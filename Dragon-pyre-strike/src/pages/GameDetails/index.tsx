@@ -1,5 +1,5 @@
 import { Link, useParams } from 'react-router-dom'
-import { Play, Heart, Star, Users, Keyboard, Smartphone, Sparkles, Frown, ExternalLink } from 'lucide-react'
+import { Play, Heart, Star, Users, Keyboard, Smartphone, Sparkles, Frown, ExternalLink, Download } from 'lucide-react'
 import GameThumb from '@/components/GameThumb'
 import GameGrid from '@/components/GameGrid'
 import EmptyState from '@/components/EmptyState'
@@ -8,6 +8,7 @@ import { CATEGORIES } from '@/data/categories'
 import { useFavorites, useHighScore } from '@/hooks/usePlayerData'
 import { useDocumentMeta } from '@/hooks/useDocumentMeta'
 import { formatPlayCount, formatScore } from '@/utils/format'
+import { themeLink, withInstall, withTheme } from '@/dps'
 
 export default function GameDetails() {
   const { slug } = useParams()
@@ -80,7 +81,7 @@ function GameDetailsContent({ game }: { game: GameMeta }) {
 
             <div className="mt-6 flex flex-wrap items-center gap-3">
               {game.externalUrl ? (
-                <a href={game.externalUrl} className="btn-focus flex items-center gap-2 rounded-full bg-primary px-7 py-3 text-sm font-bold text-white shadow-glow transition-transform hover:scale-105 hover:bg-primary2">
+                <a href={game.externalUrl} onClick={themeLink} onAuxClick={themeLink} className="btn-focus flex items-center gap-2 rounded-full bg-primary px-7 py-3 text-sm font-bold text-white shadow-glow transition-transform hover:scale-105 hover:bg-primary2">
                   <Play className="h-4 w-4 fill-white" /> Play Now <ExternalLink className="h-3.5 w-3.5" />
                 </a>
               ) : (
@@ -96,6 +97,20 @@ function GameDetailsContent({ game }: { game: GameMeta }) {
                 <Heart className={`h-4 w-4 ${fav ? 'fill-danger text-danger' : ''}`} />
                 {fav ? 'Saved' : 'Save'}
               </button>
+              {game.externalUrl && (
+                <a
+                  href={withInstall(withTheme(game.externalUrl))}
+                  className="btn-focus flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-white/20"
+                >
+                  <Download className="h-4 w-4" /> Install app
+                </a>
+              )}
+              <Link
+                to={`/feedback?game=${game.slug}`}
+                className="btn-focus flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-white/20"
+              >
+                <Star className="h-4 w-4" /> Rate &amp; give feedback
+              </Link>
             </div>
             {game.externalUrl && <p className="mt-3 text-xs text-white/70">Opens {game.title} on its own site. Use Exit there to return here.</p>}
           </div>

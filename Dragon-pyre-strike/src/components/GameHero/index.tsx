@@ -6,6 +6,7 @@ import type { GameMeta } from '@/data/games'
 import { CATEGORIES } from '@/data/categories'
 import { useTilt } from '@/hooks/useTilt'
 import { formatPlayCount } from '@/utils/format'
+import { themeLink } from '@/dps'
 
 export default function GameHero({ game }: { game: GameMeta }) {
   const categoryLabel = CATEGORIES.find((c) => c.id === game.category)?.title ?? game.category
@@ -39,7 +40,7 @@ export default function GameHero({ game }: { game: GameMeta }) {
 
           <div className="mt-[clamp(1.3rem,0.9rem+1.6vw,2.4rem)] flex flex-wrap items-center gap-3">
             {game.externalUrl ? (
-              <a href={game.externalUrl} className={`${cta} btn-pulse bg-primary text-white shadow-glow`}>
+              <a href={game.externalUrl} onClick={themeLink} onAuxClick={themeLink} className={`${cta} btn-pulse bg-primary text-white shadow-glow`}>
                 <Play className="h-4 w-4 fill-white" /> Play Now <ExternalLink className="h-3.5 w-3.5" />
               </a>
             ) : (

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import Embers from "./components/Embers";
-import { DragonDock, exitToHub, loadCloudSave, queueCloudSave, reportRun, useAuth } from "./dps";
+import { DragonDock, exitToHub, store } from "./dps";
 import GameCanvas from "./components/GameCanvas";
 import { loadUnlocked, resetUnlocked } from "./game/engine";
 import { LEVELS, LEVEL_COUNT, REALMS, REALM_SIZE, levelBrickCount } from "./game/levels";
@@ -10,44 +10,13 @@ import dragon from "../public/images/dragon.png";
 
 type Screen = "menu" | "how" | "select" | "game";
 
-const HIGH = () => Number(localStorage.getItem("drakebreaker-hs") || 0);
-
-type DrakeSave = { high: number; unlocked: number };
+const HIGH = () => Number(store.getItem("drakebreaker-hs") || 0);
 
 export default function App() {
   const [screen, setScreen] = useState<Screen>("menu");
   const [high, setHigh] = useState(HIGH);
   const [unlocked, setUnlocked] = useState(loadUnlocked);
   const [startLevel, setStartLevel] = useState(0);
-  const { user } = useAuth();
-  const uid = user?.id;
-
-  // On sign-in: merge local + cloud progress (best of both), then keep both in sync.
-  useEffect(() => {
-    if (!uid) return;
-    let alive = true;
-    void (async () => {
-      const cloud = await loadCloudSave<DrakeSave>("drakebreaker", "main");
-      if (!alive) return;
-      const high = Math.max(HIGH(), cloud?.data.high ?? 0);
-      const unlockedMax = Math.min(LEVEL_COUNT, Math.max(loadUnlocked(), cloud?.data.unlocked ?? 1));
-      try {
-        localStorage.setItem("drakebreaker-hs", String(high));
-        localStorage.setItem("drakebreaker-unlocked", String(unlockedMax));
-      } catch {
-        /* storage unavailable */
-      }
-      setHigh(high);
-      setUnlocked(unlockedMax);
-      queueCloudSave("drakebreaker", "main", { high, unlocked: unlockedMax }, 1, 500);
-      // First time on the leaderboard? Post the best score earned before the account existed.
-      if (!cloud && high > 0) void reportRun("drakebreaker", high, { source: "local-best" });
-    })();
-    return () => {
-      alive = false;
-    };
-  }, [uid]);
-
   const refresh = () => {
     setHigh(HIGH());
     setUnlocked(loadUnlocked());
@@ -111,7 +80,6 @@ export default function App() {
             onReset={() => {
               resetUnlocked();
               setUnlocked(1);
-              queueCloudSave("drakebreaker", "main", { high: HIGH(), unlocked: 1 }, 1, 500);
             }}
           />
         )}

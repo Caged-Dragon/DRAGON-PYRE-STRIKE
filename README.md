@@ -1,78 +1,77 @@
-# Dragon Pyre Strike — the Dragon Realm
+# Dragon Realm — hub + 7 game sites
 
-Five websites, one account, one database.
+One hub and seven games. Every site is its own app, deployed as its own Vercel project, and all of them share one
+Supabase project (accounts, scores, saves, favorites, feedback).
 
-| App folder | Site | Live URL |
+| Folder | Site | Slug |
 |---|---|---|
-| `playx` | **DracoPyre Strike** — the hub (10 games, leaderboards, profile) | https://draco-pyre-strike.vercel.app |
-| `dragon-strike-shooter-site` | **Dragon Strike** — dragon shooter, 12 realms, 8 dragons | https://dragon-strike-shooter-site.vercel.app |
-| `ember-wyrm-site` | **Ember Wyrm** — top-view dragon arena | https://emberwyrmsite.vercel.app |
-| `drakebreaker-site` | **Drakebreaker** — dragon brick breaker | https://dragonbreaker-site.vercel.app |
-| `dragon-flight-site` | **Dragon Flight** — celestial-skies flyer | https://dragon-flight-site.vercel.app |
+| `Dragon-pyre-strike` | **Hub** (DracoPyre Strike): catalogue, leaderboards, profile, feedback | `hub` |
+| `dragon-strike-shooter-site` | Dragon Strike | `dragon-strike` |
+| `ember-wyrm-site` | Ember Wyrm | `ember-wyrm` |
+| `drakebreaker-site` | Drakebreaker | `drakebreaker` |
+| `dragon-flight-site` | Dragon Flight | `dragon-flight` |
+| `2042` | Dragon 2048 | `dragon-2048` |
+| `soduko` | Dragon Sudoku | `dragon-sudoku` |
+| `tictactoe` | Dragon Tic-Tac-Toe | `dragon-tictactoe` |
 
-Every app is a self-contained Vite + React + TypeScript project (own `package.json`, own build). The hub is the
-front door: its game cards open the other sites in the same tab, and every game has an **Exit to DracoPyre Strike**
-button and a floating Realm map.
+`shared/dps` is the one shared module (login, theme, saved data, feedback, navigation). It is copied into every app's
+`src/dps` so each app deploys on its own. **Edit `shared/dps` only**, then run `node scripts/sync-dps.mjs`.
 
-## One central database
-All sites use the **same Supabase project** (`dragon-pyre-strike`). Nothing is stored per-site.
+## How it behaves
 
-| Data | Where | Written by |
-|---|---|---|
-| Accounts (email + password, OAuth) | Supabase Auth | every site's login |
-| Profile: username, avatar, XP / level | `profiles` | automatic on signup; edit on the hub |
-| Best score, plays, last played | `game_stats` | RPC `submit_score` |
-| Run history | `score_runs` | RPC `submit_score` |
-| Cloud saves / progress | `game_saves` | each game |
-| Favorites | `favorites` | hub |
-| Achievements | `player_achievements` | RPC `unlock_achievement` |
-| Game catalogue (slug, URL, score direction) | `games` | admin |
-| Leaderboards | view `leaderboard` | read by everyone |
+- **Login / sign-up** is Supabase Auth itself (email + password, password reset, Google/Apple where enabled in Supabase).
+  The apps contain no auth server code; a database trigger creates the profile.
+- **Guest**: nothing is stored anywhere (no cookies, no browser storage, no database rows). Settings, progress and theme
+  live in the open page only.
+- **Signed in**: theme, settings, game progress, favorites, scores and XP are saved to the account and follow the player
+  to every site.
+- **Two themes, everywhere** (hub included): **Dragon** (dark, fiery) and **Classic** (light, clean). One switch in the
+  Dragon dock on every game and in the hub header. Signed-in players keep the choice in their account; guests carry it in
+  the link when moving between sites (`?theme=classic`).
+- **Feedback**: "Send feedback" in every game's dock opens a form (idea / problem / praise, 1-5 stars, message, optional
+  email). The hub has a full page at `/feedback` (pick any game) and a "Rate & give feedback" button on each game page.
+  Guests and players can both send it. It is saved to the `feedback` table.
 
-Row Level Security is enabled on every table; XP, stats and achievements can only be changed through the two RPCs.
-The database schema is **not** part of this repository — it lives in Supabase.
-The browser only ever uses the public *publishable* key (in `shared/dps/config.ts`); never put a service-role key in this repo.
+## Install as apps (PWA) and the Realm Store
 
-## Shared module
-`shared/dps` is the single source of truth for everything the sites have in common: Supabase client, login modal,
-account dock, score/save/achievement API, animated backdrop, and the site registry (`config.ts`).
-Each app keeps a copy in `src/dps` so it can be built and deployed from its own folder. After editing `shared/dps`:
+Every site is an installable app: web manifest, icons, and an offline service worker (open it once online, then it keeps
+working offline). A browser can only install the site you are on, so:
 
-```bash
-node scripts/sync-dps.mjs        # copy shared/dps into every app
-node scripts/check-ecosystem.mjs # verify the sites are wired to each other and to the database
-node scripts/check-ecosystem.mjs --live   # …and request every deployed URL
+- The hub's **Realm Store** (`/store`, also in the nav) lists every game with **Install**, **Open** and **Details**.
+  **Install** opens the game's own site with `?install=1`, which pops up that game's install sheet (one tap where the browser
+  allows it; Share -> Add to Home Screen steps on iPhone/iPad).
+- The hub itself is installable too and acts as the launcher; every game's dock also has an **Install app** row.
+- On Android, links from the hub to an already-installed game usually open the installed app.
+- Files per site: `public/manifest.webmanifest`, `public/sw.js`, `public/icons/*`, plus `vercel.json` headers. They are
+  generated: `node scripts/sync-pwa.mjs` (and `python3 scripts/pwa/make_icons.py` for icons). Five games use generated
+  monogram icons; drop your own PNGs into `<app>/public/icons` (same file names) to replace them.
+
+## Environment variables
+
+All eight sites use the **same** variables (copy `.env.example`, which is in every folder). They are optional: set them in
+every Vercel project only when a site's real address differs from the default. Vite reads them at build time, so redeploy
+after changing them. Locally, copy `.env.example` to `.env`.
+
+## Deploy (GitHub -> Vercel)
+
+1. Push this repository to GitHub as is.
+2. In Vercel, **Add New -> Project** and import the repo **eight times**. For each, set **Root Directory** to the folder in the
+   table above. Framework preset: **Vite** (auto-detected). Build command `npm run build`, output `dist` (defaults).
+3. Note each project's address (e.g. `https://dragon-sudoku-site.vercel.app`).
+4. The sites find each other through the addresses in `.env.example`. Add that same list (hub address + all seven game
+   addresses, using each project's real Vercel address) to **every** one of the eight projects, then redeploy.
+
+5. In **Supabase -> Authentication -> URL Configuration**, add all eight addresses to **Redirect URLs** (and set the hub as
+   Site URL). Password-reset and email-confirmation links return to the site that asked for them.
+6. Supabase needs the shared tables (profiles, games, scores, saves, favorites, settings, achievements) and the `feedback`
+   table. The first time, create the `feedback` table (see the database note you were given).
+7. Check the whole thing: `node scripts/check-ecosystem.mjs` (and `--live` once deployed).
+
+Sign-in is per site (each address is a separate origin), with the same email and password everywhere. Putting the sites on
+subdomains of one domain would allow a single shared session later.
+
+## Local development
+
 ```
-
-## Run an app locally
-```bash
-cd <app folder>
-npm install
-npm run dev        # development
-npm run build      # production build (dist/)
+cd <folder> && npm ci && npm run dev
 ```
-No environment variables are needed.
-
-## Deploy (Vercel)
-Create one Vercel project per app. If you deploy from this single repository, set each project's **Root Directory** to
-the app folder and keep the Vite preset. (Each folder can also be pushed on its own to a separate repository.)
-The hub needs its `vercel.json` SPA rewrite (already included).
-
-## Supabase dashboard settings (Authentication)
-- **URL Configuration → Site URL:** `https://draco-pyre-strike.vercel.app`
-- **Redirect URLs:** all five live URLs and `http://localhost:5173`
-- **Email:** decide whether "Confirm email" is on; use custom SMTP for production volumes.
-- **Providers:** Dragon Strike's "Google / Apple / Discord / GitHub" buttons only work once those providers are enabled here.
-
-## Adding a new game
-1. `insert into games (...)` in Supabase (slug, title, score direction, external URL).
-2. Add it to `ECOSYSTEM_SITES` and `SCORE_DIRECTION` in `shared/dps/config.ts`, and to `playx/src/data/games.ts` with the same `externalUrl`.
-3. In the new app: wrap it in `<AuthProvider>`, render `<DragonDock siteSlug="…" />`, call `reportRun(slug, score)` when a run ends,
-   `queueCloudSave(...)` for progress and `exitToHub()` from an Exit button.
-4. Add the folder to `scripts/sync-dps.mjs` and `scripts/check-ecosystem.mjs`, then run both.
-
-## Notes
-- The hub still contains the original built-in Dragon Strike game (`playx/src/games/dragon-strike`). The catalogue now sends
-  that card to the standalone Dragon Strike site, so the built-in version is unused and can be deleted.
-- Each player signs in once **per site** (browsers keep a separate session per domain) — same email and password everywhere.
-  True single sign-on would need all sites on subdomains of one custom domain.

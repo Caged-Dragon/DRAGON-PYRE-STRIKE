@@ -1,3 +1,4 @@
+import { store } from '../dps';
 import type {
   AIDifficulty,
   BoardSize,
@@ -107,10 +108,10 @@ export function sanitizeSettings(raw: unknown): GameSettings {
 
 export function loadSettings(): GameSettings {
   try {
-    const saved = localStorage.getItem(SETTINGS_STORAGE_KEY);
+    const saved = store.getItem(SETTINGS_STORAGE_KEY);
     if (saved) return sanitizeSettings(JSON.parse(saved));
     // Carry over player names saved by earlier versions of the game
-    const legacyNames = localStorage.getItem(LEGACY_NAMES_KEY);
+    const legacyNames = store.getItem(LEGACY_NAMES_KEY);
     if (legacyNames) return sanitizeSettings({ playerNames: JSON.parse(legacyNames) });
   } catch {
     // Storage unavailable or unreadable — fall back to defaults
@@ -120,7 +121,7 @@ export function loadSettings(): GameSettings {
 
 export function saveSettings(settings: GameSettings): void {
   try {
-    localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(settings));
+    store.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(settings));
   } catch {
     // Storage may be blocked (private mode) — settings still apply for this session
   }
@@ -128,7 +129,7 @@ export function saveSettings(settings: GameSettings): void {
 
 export function loadSettingsTab(): SettingsTab {
   try {
-    return pick<SettingsTab>(localStorage.getItem(SETTINGS_TAB_KEY), SETTINGS_TABS, "gameplay");
+    return pick<SettingsTab>(store.getItem(SETTINGS_TAB_KEY), SETTINGS_TABS, "gameplay");
   } catch {
     return "gameplay";
   }
@@ -136,7 +137,7 @@ export function loadSettingsTab(): SettingsTab {
 
 export function saveSettingsTab(tab: SettingsTab): void {
   try {
-    localStorage.setItem(SETTINGS_TAB_KEY, tab);
+    store.setItem(SETTINGS_TAB_KEY, tab);
   } catch {
     // Ignore storage errors
   }

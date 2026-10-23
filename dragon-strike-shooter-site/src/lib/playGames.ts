@@ -1,4 +1,5 @@
 import { getLeaderboard, listUnlockedAchievements, supabase, unlockRealmAchievement } from "../dps";
+import { store } from '../dps';
 
 const GAME = "dragon-strike";
 
@@ -137,7 +138,7 @@ const UNLOCKED_KEY = "dragon-strike-achievements";
 
 export function readUnlockedAchievements(): string[] {
   try {
-    const raw = localStorage.getItem(UNLOCKED_KEY);
+    const raw = store.getItem(UNLOCKED_KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw);
     return Array.isArray(parsed) ? parsed.filter((id): id is string => typeof id === "string") : [];
@@ -148,7 +149,7 @@ export function readUnlockedAchievements(): string[] {
 
 function writeUnlockedAchievements(ids: string[]) {
   try {
-    localStorage.setItem(UNLOCKED_KEY, JSON.stringify(ids));
+    store.setItem(UNLOCKED_KEY, JSON.stringify(ids));
   } catch {
     // Ignore write failures.
   }
@@ -206,13 +207,13 @@ export async function syncAchievements(): Promise<void> {
   for (const def of ACHIEVEMENTS) {
     let local = false;
     try {
-      local = localStorage.getItem(`ds-ach-${def.id}`) === "1";
+      local = store.getItem(`ds-ach-${def.id}`) === "1";
     } catch {
       local = false;
     }
     if (cloudSet.has(def.id) && !local) {
       try {
-        localStorage.setItem(`ds-ach-${def.id}`, "1");
+        store.setItem(`ds-ach-${def.id}`, "1");
       } catch {
         // Ignore storage failures.
       }
@@ -273,7 +274,7 @@ export async function fetchLeaderboard(): Promise<LeaderboardRow[]> {
     // Fall through to the local board.
   }
 
-  const local = Number(localStorage.getItem("dragon-strike-hi") || 0);
+  const local = Number(store.getItem("dragon-strike-hi") || 0);
   const seed: LeaderboardRow[] = [
     { rank: 1, username: "Ignis-Bane", score: 68400 },
     { rank: 2, username: "FrostWyrm_99", score: 52100 },

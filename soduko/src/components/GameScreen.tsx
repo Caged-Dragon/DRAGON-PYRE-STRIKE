@@ -4,7 +4,6 @@ import {
   CircleAlert,
   Flame,
   Grid3X3,
-  Lock,
   MoonStar,
   Pause,
   Play,
@@ -34,7 +33,6 @@ interface Props {
   themeId: ThemeId;
   onMenu: () => void;
   onToggleTheme: () => void;
-  subscribed: boolean;
   soundEnabled: boolean;
   onToggleSound: () => void;
 }
@@ -53,7 +51,6 @@ export function GameScreen({
   themeId,
   onMenu,
   onToggleTheme,
-  subscribed,
   soundEnabled,
   onToggleSound,
 }: Props) {
@@ -223,7 +220,6 @@ export function GameScreen({
               <>
                 <DragonCrestEmblem className="h-4 w-4" />
                 <span>Dragon</span>
-                {!subscribed && <Lock className="h-3 w-3 text-amber-400" />}
               </>
             )}
           </button>

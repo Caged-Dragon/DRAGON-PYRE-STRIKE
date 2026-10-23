@@ -10,6 +10,7 @@ import { getGameBySlug } from '@/data/games'
 import { useRecentlyPlayed, useHighScore, useSoundPreference } from '@/hooks/usePlayerData'
 import { useDocumentMeta } from '@/hooks/useDocumentMeta'
 import { formatScore } from '@/utils/format'
+import { themeLink } from '@/dps'
 
 export default function GamePlay() {
   const { slug } = useParams()
@@ -67,7 +68,7 @@ export default function GamePlay() {
         <h1 className="mt-5 font-display text-xl font-bold">{game.title} lives on its own site</h1>
         <p className="mt-2 text-sm text-textMuted">This one's a full separate build, not an embedded page — Play Now takes you there, and its Exit button brings you back here.</p>
         <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-          <a href={game.externalUrl} className="btn-focus flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-bold text-white shadow-glow transition-transform hover:scale-105 hover:bg-primary2">
+          <a href={game.externalUrl} onClick={themeLink} onAuxClick={themeLink} className="btn-focus flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-bold text-white shadow-glow transition-transform hover:scale-105 hover:bg-primary2">
             <Play className="h-4 w-4 fill-white" /> Play Now <ExternalLink className="h-3.5 w-3.5" />
           </a>
           <Link to={`/games/${game.slug}`} className="btn-focus rounded-full border border-text/10 bg-surface px-6 py-3 text-sm font-semibold text-textMuted transition-colors hover:text-text">

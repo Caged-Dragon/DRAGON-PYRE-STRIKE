@@ -2,6 +2,8 @@ import { useEffect, useRef, useState, type MouseEvent as ReactMouseEvent } from 
 import { useAuth } from './context';
 import { ECOSYSTEM_SITES, HUB_URL, avatarEmoji, levelFromXp } from './config';
 import { leaveTo } from './api';
+import { useRealmTheme, withTheme } from './theme';
+import { usePwaInstall } from './pwa';
 
 export type DockPosition = 'bottom-left' | 'bottom-right' | 'top-left' | 'top-right';
 
@@ -10,7 +12,9 @@ export type DockPosition = 'bottom-left' | 'bottom-right' | 'top-left' | 'top-ri
  * `siteSlug` is the current game's slug so it is highlighted in the list.
  */
 export function DragonDock({ siteSlug, position = 'bottom-left' }: { siteSlug: string; position?: DockPosition }) {
-  const { user, profile, loading, openAuth, signOut, refreshProfile } = useAuth();
+  const { user, profile, loading, openAuth, signOut, refreshProfile, openFeedback } = useAuth();
+  const [theme, setTheme] = useRealmTheme();
+  const pwa = usePwaInstall();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -83,17 +87,27 @@ export function DragonDock({ siteSlug, position = 'bottom-left' }: { siteSlug: s
           ) : (
             <div className="dps-guest">
               <strong>Playing as guest</strong>
-              <small>Sign in to keep scores, saves and favorites across every game.</small>
+              <small>Nothing is saved while you play as a guest. Sign in to keep scores, settings and progress across every game.</small>
               <button type="button" className="dps-primary" onClick={() => { setOpen(false); openAuth('signin'); }}>
                 Sign in / Create account
               </button>
             </div>
           )}
 
+          <div className="dps-theme" role="group" aria-label="Theme">
+            <span>Theme</span>
+            <button type="button" className={theme === 'dragon' ? 'on' : ''} aria-pressed={theme === 'dragon'} onClick={() => setTheme('dragon')}>
+              🐉 Dragon
+            </button>
+            <button type="button" className={theme === 'classic' ? 'on' : ''} aria-pressed={theme === 'classic'} onClick={() => setTheme('classic')}>
+              ♟ Classic
+            </button>
+          </div>
+
           <p className="dps-h">Dragon Realm</p>
-          <a className="dps-row dps-exit" href={HUB_URL} onClick={(e) => go(e, HUB_URL)}>
+          <a className="dps-row dps-exit" href={withTheme(HUB_URL)} onClick={(e) => go(e, HUB_URL)}>
             <span aria-hidden>🏰</span>
-            <span><b>Exit to DracoPyre Strike</b><small>Back to the hub — 10 games, leaderboards</small></span>
+            <span><b>Exit to DracoPyre Strike</b><small>Back to the hub — 13 games, leaderboards</small></span>
           </a>
           {ECOSYSTEM_SITES.map((s) =>
             s.slug === siteSlug ? (
@@ -102,7 +116,7 @@ export function DragonDock({ siteSlug, position = 'bottom-left' }: { siteSlug: s
                 <span><b>{s.title}</b><small>You are here</small></span>
               </div>
             ) : (
-              <a key={s.slug} className="dps-row" href={s.url} onClick={(e) => go(e, s.url)}>
+              <a key={s.slug} className="dps-row" href={withTheme(s.url)} onClick={(e) => go(e, s.url)}>
                 <span aria-hidden>{s.emoji}</span>
                 <span><b>{s.title}</b><small>{s.tagline}</small></span>
               </a>
@@ -110,8 +124,12 @@ export function DragonDock({ siteSlug, position = 'bottom-left' }: { siteSlug: s
           )}
 
           <div className="dps-foot">
-            <a href={`${HUB_URL}/leaderboard`} onClick={(e) => go(e, `${HUB_URL}/leaderboard`)}>Leaderboards</a>
-            {user && <a href={`${HUB_URL}/profile`} onClick={(e) => go(e, `${HUB_URL}/profile`)}>My profile</a>}
+            <a href={withTheme(`${HUB_URL}/leaderboard`)} onClick={(e) => go(e, `${HUB_URL}/leaderboard`)}>Leaderboards</a>
+            {user && <a href={withTheme(`${HUB_URL}/profile`)} onClick={(e) => go(e, `${HUB_URL}/profile`)}>My profile</a>}
+            <button type="button" onClick={() => { setOpen(false); openFeedback(); }}>Send feedback</button>
+            {!pwa.installed && (
+              <button type="button" onClick={() => { setOpen(false); void pwa.install(); }}>Install app</button>
+            )}
             {user && (
               <button type="button" onClick={() => { setOpen(false); void signOut(); }}>Sign out</button>
             )}

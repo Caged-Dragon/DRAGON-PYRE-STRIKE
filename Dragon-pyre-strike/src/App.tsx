@@ -16,6 +16,7 @@ const Category = lazy(() => import('@/pages/Category'))
 const Favorites = lazy(() => import('@/pages/Favorites'))
 const Search = lazy(() => import('@/pages/Search'))
 const Feedback = lazy(() => import('@/pages/Feedback'))
+const Store = lazy(() => import('@/pages/Store'))
 const Leaderboard = lazy(() => import('@/pages/Leaderboard'))
 const Profile = lazy(() => import('@/pages/Profile'))
 const NotFound = lazy(() => import('@/pages/NotFound'))
@@ -47,6 +48,7 @@ export default function App() {
             <Route path="/category/:category" element={<Category />} />
             <Route path="/favorites" element={<Favorites />} />
             <Route path="/search" element={<Search />} />
+            <Route path="/store" element={<Store />} />
             <Route path="/feedback" element={<Feedback />} />
             <Route path="/leaderboard" element={<Leaderboard />} />
             <Route path="/profile" element={<Profile />} />

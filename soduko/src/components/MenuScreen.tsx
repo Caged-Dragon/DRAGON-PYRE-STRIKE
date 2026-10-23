@@ -3,13 +3,14 @@ import {
   ArrowRight,
   Award,
   CheckCircle2,
-  Crown,
+  Home,
   Lock,
   Play,
   Sparkles,
   Trophy,
 } from "lucide-react";
 import { cn } from "../utils/cn";
+import { exitToHub } from "../dps";
 import {
   DIFFICULTY_META,
   THEMES,
@@ -27,9 +28,7 @@ import {
 interface Props {
   theme: Theme;
   themeId: ThemeId;
-  subscribed: boolean;
   onChooseTheme: (id: ThemeId) => void;
-  onOpenPaywall: () => void;
   onStart: (d: Difficulty) => void;
   onContinue?: () => void;
   hasSavedGame: boolean;
@@ -50,9 +49,7 @@ function fmt(sec?: number) {
 export function MenuScreen({
   theme,
   themeId,
-  subscribed,
   onChooseTheme,
-  onOpenPaywall,
   onStart,
   onContinue,
   hasSavedGame,
@@ -90,20 +87,16 @@ export function MenuScreen({
 
         <button
           type="button"
-          onClick={onOpenPaywall}
+          onClick={() => void exitToHub()}
           className={cn(
-            "inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold transition-transform active:scale-95",
-            subscribed
-              ? isDragon
-                ? "bg-amber-500/20 text-amber-200 border border-amber-400/50"
-                : "bg-amber-50 text-amber-800 border border-amber-200"
-              : "bg-[linear-gradient(95deg,#f59e0b,#ea580c)] text-white shadow-sm"
+            "inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-xs font-semibold transition-transform active:scale-95",
+            isDragon
+              ? "border-amber-400/50 bg-amber-500/20 text-amber-200"
+              : "border-slate-300 bg-white text-slate-700"
           )}
         >
-          <Crown className="h-3.5 w-3.5" />
-          <span>
-            {subscribed ? "Dragon Pass Active" : "Unlock Dragon Theme"}
-          </span>
+          <Home className="h-3.5 w-3.5" />
+          <span>Realm hub</span>
         </button>
       </div>
 
@@ -177,7 +170,7 @@ export function MenuScreen({
             {(["classic", "dragon"] as ThemeId[]).map((id) => {
               const t = THEMES[id];
               const active = id === themeId;
-              const locked = t.locked && !subscribed;
+              const locked = false;
               const cardDragon = id === "dragon";
 
               return (

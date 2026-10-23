@@ -1,6 +1,6 @@
+import { exitToHub } from "../dps";
 import React from "react";
 import {
-  Crown,
   Home,
   Settings,
   Swords,
@@ -21,7 +21,6 @@ interface HeaderProps {
   soundEnabled: boolean;
   matchLive: boolean;
   onNavigate: (screen: AppScreen) => void;
-  onOpenSubscriptionModal: () => void;
   onToggleSound: () => void;
 }
 
@@ -35,26 +34,14 @@ export const Header: React.FC<HeaderProps> = ({
   screen,
   theme,
   realm,
-  subscription,
   soundEnabled,
   matchLive,
   onNavigate,
-  onOpenSubscriptionModal,
   onToggleSound,
 }) => {
   const t = getUiTokens(theme, realm);
   const r = DRAGON_REALMS[realm];
   const isDragon = t.isDragon;
-
-  const passLabel = subscription.isSubscribed
-    ? "Pass Active"
-    : subscription.trialMatchesRemaining > 0
-    ? `Trial · ${subscription.trialMatchesRemaining}`
-    : "Unlock Dragon";
-
-  const passClass = subscription.isSubscribed
-    ? t.chip
-    : "bg-gradient-to-r from-amber-400 to-orange-500 text-slate-950 shadow-[0_8px_20px_-10px_rgba(245,158,11,0.9)] hover:from-amber-300 hover:to-orange-400";
 
   return (
     <header
@@ -137,15 +124,13 @@ export const Header: React.FC<HeaderProps> = ({
         <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
           <button
             type="button"
-            onClick={onOpenSubscriptionModal}
-            title={passLabel}
-            aria-label={passLabel}
-            className={`inline-flex h-9 items-center gap-1.5 rounded-xl px-2.5 text-xs font-bold transition-all duration-200 cursor-pointer sm:px-3 ${passClass}`}
+            onClick={() => void exitToHub()}
+            title="Back to the Realm hub"
+            aria-label="Back to the Realm hub"
+            className={`inline-flex h-9 items-center gap-1.5 rounded-xl px-2.5 text-xs font-bold transition-all duration-200 cursor-pointer sm:px-3 ${t.chip}`}
           >
-            <Crown
-              className={`h-3.5 w-3.5 shrink-0 ${subscription.isSubscribed ? "text-amber-400" : ""}`}
-            />
-            <span className="hidden sm:inline">{passLabel}</span>
+            <Home className="h-3.5 w-3.5 shrink-0" />
+            <span className="hidden sm:inline">Realm hub</span>
           </button>
 
           <button

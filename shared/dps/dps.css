@@ -61,3 +61,124 @@ a.dps-row:hover { background: rgba(251,146,60,.12); }
 @media (prefers-reduced-motion: reduce) { .dps-dot { animation: none; } .dps-fab { transition: none; } }
 
 .dps-exit { background: rgba(249,115,22,.1); border: 1px solid rgba(251,146,60,.28); margin-bottom: 2px; }
+
+/* ================= Feedback, theme switch, splash ================= */
+.dps-form textarea, .dps-form select { width: 100%; padding: 11px 12px; color: #fff3e6; font: inherit; font-size: 15px; background: rgba(0,0,0,.4); border: 1px solid rgba(251,146,60,.28); border-radius: 10px; outline: none; resize: vertical; }
+.dps-form textarea:focus, .dps-form select:focus { border-color: #fb923c; box-shadow: 0 0 0 3px rgba(251,146,60,.2); }
+.dps-form textarea::placeholder { color: #8a6650; }
+.dps-form select option { color: #1a0f0d; background: #fff; }
+.dps-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.dps-chips button { padding: 7px 13px; border: 1px solid rgba(251,146,60,.3); border-radius: 99px; background: transparent; color: #fdba74; font-size: 13px; font-weight: 700; cursor: pointer; }
+.dps-chips button.on { color: #fff; border-color: transparent; background: linear-gradient(135deg,#f97316,#dc2626); }
+.dps-stars { display: flex; align-items: center; gap: 2px; }
+.dps-stars button { padding: 0 2px; border: 0; background: none; color: rgba(253,186,116,.3); font-size: 28px; line-height: 1.2; cursor: pointer; transition: transform .1s; }
+.dps-stars button.on { color: #fbbf24; }
+.dps-stars button:hover { transform: scale(1.12); }
+.dps-stars small { margin-left: 10px; font-size: 12.5px; color: #d6a98a; }
+.dps-fb-who { margin: 0; font-size: 12px; line-height: 1.5; color: #d6a98a; text-align: center; }
+.dps-fb-who b { color: #fff3e6; }
+.dps-linklike { padding: 0; border: 0; background: none; color: #fdba74; font: inherit; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.dps-fb-done { display: grid; gap: 8px; justify-items: center; padding: 18px 4px 6px; text-align: center; }
+.dps-fb-done > span { font-size: 38px; }
+.dps-fb-done strong { font-size: 17px; color: #fff3e6; }
+.dps-fb-done p { margin: 0 0 6px; font-size: 13px; line-height: 1.5; color: #d6a98a; }
+.dps-ghost { padding: 9px 16px; border: 1px solid rgba(251,146,60,.4); border-radius: 10px; background: transparent; color: #fdba74; font-size: 13px; font-weight: 700; cursor: pointer; }
+.dps-ghost:hover { background: rgba(251,146,60,.12); }
+
+.dps-theme { display: grid; grid-template-columns: auto 1fr 1fr; align-items: center; gap: 4px; padding: 4px; margin: 0 0 8px; background: rgba(0,0,0,.35); border-radius: 11px; }
+.dps-theme > span { padding: 0 8px; font-size: 10.5px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: #fb923c; }
+.dps-theme button { padding: 7px 4px; border: 0; border-radius: 8px; background: transparent; color: #d6a98a; font-size: 12.5px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+.dps-theme button.on { color: #fff; background: linear-gradient(135deg,#f97316,#dc2626); }
+
+.dps-splash { position: fixed; inset: 0; z-index: 2147482500; display: grid; place-content: center; justify-items: center; gap: 10px; color: #fdba74; background: radial-gradient(ellipse at 50% 40%, #3a1608, #0a0506 70%); font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+.dps-splash span { font-size: 46px; animation: dps-bob 1.6s ease-in-out infinite; }
+.dps-splash p { margin: 0; font-size: 13px; letter-spacing: .08em; }
+@keyframes dps-bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+.dps-card select, .dps-card textarea { font-family: inherit; }
+.dps-form label span { display: block; }
+@media (prefers-reduced-motion: reduce) { .dps-splash span { animation: none; } .dps-stars button { transition: none; } }
+
+/* ================= Classic theme (light, clean) ================= */
+html[data-realm-theme="classic"] .dps-backdrop { background: rgba(26,15,13,.45); }
+html[data-realm-theme="classic"] .dps-card,
+html[data-realm-theme="classic"] .dps-panel { color: #1a0f0d; background: #ffffff; border-color: rgba(26,15,13,.14); box-shadow: 0 18px 50px rgba(26,15,13,.2); }
+html[data-realm-theme="classic"] .dps-x { color: #5a443e; }
+html[data-realm-theme="classic"] .dps-x:hover { background: rgba(26,15,13,.07); }
+html[data-realm-theme="classic"] .dps-title,
+html[data-realm-theme="classic"] .dps-who strong,
+html[data-realm-theme="classic"] .dps-guest strong,
+html[data-realm-theme="classic"] .dps-row b,
+html[data-realm-theme="classic"] .dps-fb-who b,
+html[data-realm-theme="classic"] .dps-fb-done strong { color: #1a0f0d; }
+html[data-realm-theme="classic"] .dps-sub,
+html[data-realm-theme="classic"] .dps-who small,
+html[data-realm-theme="classic"] .dps-guest small,
+html[data-realm-theme="classic"] .dps-row small,
+html[data-realm-theme="classic"] .dps-stars small,
+html[data-realm-theme="classic"] .dps-fb-who,
+html[data-realm-theme="classic"] .dps-fb-done p { color: #5a443e; }
+html[data-realm-theme="classic"] .dps-tabs,
+html[data-realm-theme="classic"] .dps-theme { background: #f5ece3; }
+html[data-realm-theme="classic"] .dps-tabs button,
+html[data-realm-theme="classic"] .dps-theme button { color: #5a443e; }
+html[data-realm-theme="classic"] .dps-tabs button.on,
+html[data-realm-theme="classic"] .dps-theme button.on,
+html[data-realm-theme="classic"] .dps-chips button.on { color: #fff; background: #dc2626; }
+html[data-realm-theme="classic"] .dps-form label span,
+html[data-realm-theme="classic"] .dps-theme > span,
+html[data-realm-theme="classic"] .dps-h { color: #b45309; }
+html[data-realm-theme="classic"] .dps-form input,
+html[data-realm-theme="classic"] .dps-form textarea,
+html[data-realm-theme="classic"] .dps-form select { color: #1a0f0d; background: #fdfaf6; border-color: rgba(26,15,13,.22); }
+html[data-realm-theme="classic"] .dps-form input:focus,
+html[data-realm-theme="classic"] .dps-form textarea:focus,
+html[data-realm-theme="classic"] .dps-form select:focus { border-color: #dc2626; box-shadow: 0 0 0 3px rgba(220,38,38,.18); }
+html[data-realm-theme="classic"] .dps-form input::placeholder,
+html[data-realm-theme="classic"] .dps-form textarea::placeholder { color: #9e8a80; }
+html[data-realm-theme="classic"] .dps-primary { background: #dc2626; box-shadow: 0 4px 14px rgba(220,38,38,.28); }
+html[data-realm-theme="classic"] .dps-err { color: #9f1239; background: #fff1f2; border-color: rgba(190,18,60,.3); }
+html[data-realm-theme="classic"] .dps-ok { color: #166534; background: #f0fdf4; border-color: rgba(21,128,61,.3); }
+html[data-realm-theme="classic"] .dps-links button,
+html[data-realm-theme="classic"] .dps-foot a,
+html[data-realm-theme="classic"] .dps-foot button,
+html[data-realm-theme="classic"] .dps-linklike,
+html[data-realm-theme="classic"] .dps-ghost { color: #b45309; }
+html[data-realm-theme="classic"] .dps-ghost { border-color: rgba(180,83,9,.4); }
+html[data-realm-theme="classic"] .dps-chips button { color: #5a443e; border-color: rgba(26,15,13,.2); }
+html[data-realm-theme="classic"] .dps-stars button { color: rgba(26,15,13,.18); }
+html[data-realm-theme="classic"] .dps-stars button.on { color: #d97706; }
+html[data-realm-theme="classic"] .dps-fab { color: #1a0f0d; background: #ffffff; border-color: rgba(26,15,13,.22); box-shadow: 0 4px 16px rgba(26,15,13,.22); }
+html[data-realm-theme="classic"] .dps-dot { background: #dc2626; border-color: #fff; }
+html[data-realm-theme="classic"] .dps-av { background: #fdf0e6; border-color: rgba(180,83,9,.3); }
+html[data-realm-theme="classic"] .dps-bar { background: rgba(26,15,13,.12); }
+html[data-realm-theme="classic"] .dps-bar b { background: #dc2626; }
+html[data-realm-theme="classic"] a.dps-row:hover { background: #f5ece3; }
+html[data-realm-theme="classic"] .dps-here { background: #fdf0e6; border-color: rgba(180,83,9,.25); }
+html[data-realm-theme="classic"] .dps-exit { background: #fdf0e6; border-color: rgba(180,83,9,.28); }
+html[data-realm-theme="classic"] .dps-foot { border-top-color: rgba(26,15,13,.12); }
+html[data-realm-theme="classic"] .dps-splash { color: #5a443e; background: #fdfaf6; }
+
+/* Feedback form placed inside a normal page (hub) instead of the modal: use the page's own theme colours. */
+.dps-inline .dps-form label span, .dps-inline .dps-theme > span { color: rgb(var(--color-secondary, 180 83 9)); }
+.dps-inline .dps-form input, .dps-inline .dps-form textarea, .dps-inline .dps-form select { color: rgb(var(--color-text, 26 15 13)); background: rgb(var(--color-bg, 253 250 246)); border-color: rgb(var(--color-text, 26 15 13) / .2); }
+.dps-inline .dps-form input::placeholder, .dps-inline .dps-form textarea::placeholder { color: rgb(var(--color-muted, 158 138 128)); }
+.dps-inline .dps-chips button { color: rgb(var(--color-text-muted, 90 68 62)); border-color: rgb(var(--color-text, 26 15 13) / .2); }
+.dps-inline .dps-chips button.on { color: #fff; background: rgb(var(--color-primary, 220 38 38)); border-color: transparent; }
+.dps-inline .dps-stars button { color: rgb(var(--color-text, 26 15 13) / .2); }
+.dps-inline .dps-stars button.on { color: #f59e0b; }
+.dps-inline .dps-stars small, .dps-inline .dps-fb-who, .dps-inline .dps-fb-done p { color: rgb(var(--color-text-muted, 90 68 62)); }
+.dps-inline .dps-fb-who b, .dps-inline .dps-fb-done strong { color: rgb(var(--color-text, 26 15 13)); }
+.dps-inline .dps-primary { background: rgb(var(--color-primary, 220 38 38)); box-shadow: none; }
+.dps-inline .dps-linklike, .dps-inline .dps-ghost { color: rgb(var(--color-secondary, 180 83 9)); }
+.dps-inline .dps-ghost { border-color: rgb(var(--color-secondary, 180 83 9) / .45); }
+.dps-inline .dps-form { max-width: none; }
+
+/* ================= Install sheet ================= */
+.dps-install .dps-primary { margin-top: 4px; }
+.dps-steps { list-style: decimal outside; margin: 6px 0 14px; padding-left: 22px; font-size: 14px; line-height: 1.6; color: #fdba74; }
+.dps-steps li { display: list-item; margin: 2px 0; }
+.dps-steps b { color: #fff3e6; }
+.dps-install-close { display: block; margin: 8px auto 0; }
+html[data-realm-theme="classic"] .dps-steps { color: #5a443e; }
+html[data-realm-theme="classic"] .dps-steps b { color: #1a0f0d; }
+.dps-inline .dps-steps { color: rgb(var(--color-text-muted, 90 68 62)); }

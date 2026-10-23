@@ -6,15 +6,13 @@ import { useSudokuGame } from "./hooks/useSudokuGame";
 import { useGameSounds } from "./hooks/useGameSounds";
 import { MenuScreen } from "./components/MenuScreen";
 import { GameScreen } from "./components/GameScreen";
-import { PaywallModal } from "./components/PaywallModal";
 import { WinModal } from "./components/WinModal";
 import { DragonCave } from "./components/DragonArt";
+import { DragonDock, reportRun, store, useRealmTheme } from './dps';
 
 type Screen = "menu" | "game";
 
 interface UserPrefs {
-  themeId: ThemeId;
-  subscribed: boolean;
   soundEnabled: boolean;
   bestTimes: Partial<Record<Difficulty, number>>;
   gamesSolved: number;
@@ -23,48 +21,28 @@ interface UserPrefs {
 const PREFS_KEY = "sudoku.prefs.v2";
 
 function loadPrefs(): UserPrefs {
+  const fallback: UserPrefs = { soundEnabled: true, bestTimes: {}, gamesSolved: 0 };
   try {
-    const raw = localStorage.getItem(PREFS_KEY);
-    if (!raw) {
-      return {
-        themeId: "classic",
-        subscribed: false,
-        soundEnabled: true,
-        bestTimes: {},
-        gamesSolved: 0,
-      };
-    }
+    const raw = store.getItem(PREFS_KEY);
+    if (!raw) return fallback;
     const parsed = JSON.parse(raw) as Partial<UserPrefs>;
-    const sub = Boolean(parsed.subscribed);
     return {
-      themeId: parsed.themeId === "dragon" && sub ? "dragon" : "classic",
-      subscribed: sub,
       soundEnabled: parsed.soundEnabled ?? true,
       bestTimes: parsed.bestTimes ?? {},
       gamesSolved: parsed.gamesSolved ?? 0,
     };
   } catch {
-    return {
-      themeId: "classic",
-      subscribed: false,
-      soundEnabled: true,
-      bestTimes: {},
-      gamesSolved: 0,
-    };
+    return fallback;
   }
 }
 
 export default function App() {
   const initialPrefs = loadPrefs();
   const [screen, setScreen] = useState<Screen>("menu");
-  const [themeId, setThemeId] = useState<ThemeId>(initialPrefs.themeId);
-  const [subscribed, setSubscribed] = useState<boolean>(
-    initialPrefs.subscribed
-  );
+  const [themeId, setThemeId] = useRealmTheme() as [ThemeId, (t: ThemeId) => void];
   const [soundEnabled, setSoundEnabled] = useState<boolean>(
     initialPrefs.soundEnabled
   );
-  const [paywallOpen, setPaywallOpen] = useState(false);
   const [bestTimes, setBestTimes] = useState<
     Partial<Record<Difficulty, number>>
   >(initialPrefs.bestTimes);
@@ -83,17 +61,15 @@ export default function App() {
   useEffect(() => {
     try {
       const data: UserPrefs = {
-        themeId,
-        subscribed,
         soundEnabled,
         bestTimes,
         gamesSolved,
       };
-      localStorage.setItem(PREFS_KEY, JSON.stringify(data));
+      store.setItem(PREFS_KEY, JSON.stringify(data));
     } catch {
       // ignore storage errors
     }
-  }, [themeId, subscribed, soundEnabled, bestTimes, gamesSolved]);
+  }, [soundEnabled, bestTimes, gamesSolved]);
 
   // Record best time & increment solved count on win
   useEffect(() => {
@@ -111,6 +87,9 @@ export default function App() {
       setBestTimes((b) => ({ ...b, [game.difficulty]: game.seconds }));
     }
     setGamesSolved((s) => s + 1);
+    const base = { easy: 1000, medium: 2000, hard: 3000, expert: 4000 }[game.difficulty];
+    const points = Math.max(100, base - game.seconds - game.mistakes * 50 - game.hintsUsed * 25);
+    void reportRun("dragon-sudoku", points, { difficulty: game.difficulty, seconds: game.seconds, mistakes: game.mistakes, hints: game.hintsUsed });
     setShowWin(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [game.won]);
@@ -118,10 +97,6 @@ export default function App() {
   // Keyboard shortcuts during gameplay
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
-      if (paywallOpen) {
-        if (e.key === "Escape") setPaywallOpen(false);
-        return;
-      }
       if (screen !== "game") return;
 
       if (e.key >= "1" && e.key <= "9") {
@@ -165,30 +140,9 @@ export default function App() {
 
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [screen, paywallOpen, game]);
+  }, [screen, game]);
 
-  const chooseTheme = useCallback(
-    (id: ThemeId) => {
-      if (id === "dragon" && !subscribed) {
-        setPaywallOpen(true);
-        return;
-      }
-      setThemeId(id);
-    },
-    [subscribed]
-  );
-
-  const handleSubscribe = useCallback(() => {
-    setSubscribed(true);
-    setThemeId("dragon");
-    setPaywallOpen(false);
-  }, []);
-
-  const handleCancelSubscription = useCallback(() => {
-    setSubscribed(false);
-    setThemeId("classic");
-    setPaywallOpen(false);
-  }, []);
+  const chooseTheme = useCallback((id: ThemeId) => setThemeId(id), [setThemeId]);
 
   const startGame = useCallback(
     (d: Difficulty) => {
@@ -215,9 +169,7 @@ export default function App() {
         <MenuScreen
           theme={theme}
           themeId={themeId}
-          subscribed={subscribed}
           onChooseTheme={chooseTheme}
-          onOpenPaywall={() => setPaywallOpen(true)}
           onStart={startGame}
           onContinue={() => setScreen("game")}
           hasSavedGame={game.active && !game.won}
@@ -238,7 +190,6 @@ export default function App() {
           game={game}
           theme={theme}
           themeId={themeId}
-          subscribed={subscribed}
           soundEnabled={soundEnabled}
           onToggleSound={() => setSoundEnabled((enabled) => !enabled)}
           onMenu={() => setScreen("menu")}
@@ -266,14 +217,7 @@ export default function App() {
         }}
       />
 
-      <PaywallModal
-        open={paywallOpen}
-        subscribed={subscribed}
-        onClose={() => setPaywallOpen(false)}
-        onSubscribe={handleSubscribe}
-        onCancelSubscription={handleCancelSubscription}
-        theme={theme}
-      />
+      <DragonDock siteSlug="dragon-sudoku" position="bottom-left" />
     </div>
   );
 }

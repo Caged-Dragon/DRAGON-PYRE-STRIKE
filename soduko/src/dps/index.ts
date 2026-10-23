@@ -1,0 +1,17 @@
+export { supabase } from './client';
+export { AuthProvider } from './AuthProvider';
+export { useAuth } from './context';
+export type { Profile, AuthMode } from './context';
+export { DragonDock } from './DragonDock';
+export { RealmBackdrop } from './RealmBackdrop';
+export type { RealmPalette } from './RealmBackdrop';
+export * from './api';
+export * from './config';
+export { FeedbackForm, FeedbackModal } from './FeedbackModal';
+export type { FeedbackTarget } from './FeedbackModal';
+export { store, flushStore } from './store';
+export { useRealmTheme, setRealmTheme, getRealmTheme, withTheme, themeLink, REALM_THEMES } from './theme';
+export type { RealmTheme } from './theme';
+export { usePwaInstall, withInstall } from './pwa';
+export type { InstallState } from './pwa';
+export { InstallPrompt } from './InstallPrompt';

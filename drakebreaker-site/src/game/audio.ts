@@ -1,3 +1,4 @@
+import { store } from '../dps';
 type NoiseKind = "white" | "brown";
 
 export class DrakeAudio {
@@ -8,7 +9,7 @@ export class DrakeAudio {
   ambientOn = false;
 
   constructor() {
-    const saved = localStorage.getItem("drakebreaker-mute");
+    const saved = store.getItem("drakebreaker-mute");
     this.muted = saved === "1";
   }
 
@@ -26,7 +27,7 @@ export class DrakeAudio {
 
   setMuted(m: boolean) {
     this.muted = m;
-    localStorage.setItem("drakebreaker-mute", m ? "1" : "0");
+    store.setItem("drakebreaker-mute", m ? "1" : "0");
     if (this.master && this.ctx) {
       this.master.gain.setTargetAtTime(m ? 0 : 0.28, this.ctx.currentTime, 0.05);
     }

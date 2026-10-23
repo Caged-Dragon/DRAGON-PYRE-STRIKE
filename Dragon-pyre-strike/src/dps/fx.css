@@ -40,3 +40,7 @@
   .rb-img, .rb-glow, .rb-aurora, .rb-lava, .rb-fog, .rb-dragon, .rb-wing, .rb-grain { animation: none !important; }
   .rb-dragon { display: none; }
 }
+
+/* Classic theme: a calm, still backdrop — no flying dragons, softer glow. */
+html[data-realm-theme="classic"] .rb-root { opacity: .18; }
+html[data-realm-theme="classic"] .rb-dragon { display: none; }

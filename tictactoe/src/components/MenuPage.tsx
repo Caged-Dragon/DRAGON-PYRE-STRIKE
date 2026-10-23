@@ -3,7 +3,6 @@ import {
   Bot,
   ChevronRight,
   Clock,
-  Crown,
   Hash,
   Infinity as InfinityIcon,
   Palette,
@@ -51,7 +50,6 @@ interface MenuPageProps {
   onQuickStart: (mode: GameMode) => void;
   onResumeGame: () => void;
   onOpenSettings: (tab?: SettingsTab) => void;
-  onOpenPaymentModal: () => void;
 }
 
 /* ---------- Self-playing demo board ---------- */
@@ -159,7 +157,6 @@ const MenuTile: React.FC<{
 export const MenuPage: React.FC<MenuPageProps> = ({
   viewport,
   realm,
-  subscription,
   scores,
   settings,
   hasMatchInProgress,
@@ -168,7 +165,6 @@ export const MenuPage: React.FC<MenuPageProps> = ({
   onQuickStart,
   onResumeGame,
   onOpenSettings,
-  onOpenPaymentModal,
 }) => {
   const theme = settings.theme;
   const t = getUiTokens(theme, realm);
@@ -197,14 +193,6 @@ export const MenuPage: React.FC<MenuPageProps> = ({
     { icon: <Clock className="h-3 w-3" />, label: "Turn clock" },
     { icon: <Sparkles className="h-3 w-3" />, label: "4 Dragon realms" },
   ];
-
-  const passDesc = subscription.isSubscribed
-    ? `Active · ${r.name} equipped`
-    : subscription.trialMatchesRemaining > 0
-    ? `Trial running · ${subscription.trialMatchesRemaining} match${
-        subscription.trialMatchesRemaining === 1 ? "" : "es"
-      } left`
-    : "Unlock 4 mythic dragon realms — test checkout, no real charge";
 
   const setupRows: {
     icon: React.ReactNode;
@@ -457,18 +445,6 @@ export const MenuPage: React.FC<MenuPageProps> = ({
             desc="Rules, players, theme, sound & assists — all saved automatically"
             action="Open settings"
             onClick={() => onOpenSettings()}
-          />
-          <MenuTile
-            tokens={t}
-            delay={0.2}
-            premium={!subscription.isSubscribed}
-            watermarkRealm={realm}
-            icon={<Crown className="h-5 w-5" />}
-            title="Dragon Pass"
-            desc={passDesc}
-            action={subscription.isSubscribed ? "View receipt" : "Unlock now"}
-            badge={subscription.isSubscribed ? "Active" : "Premium"}
-            onClick={onOpenPaymentModal}
           />
         </div>
       </section>

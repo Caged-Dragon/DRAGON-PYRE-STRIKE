@@ -1,100 +1,109 @@
-// Verifies that every site in the Dragon Realm is wired to the others and to the central database.
+// Verifies that every site in the Dragon Realm is wired to the others.
 //   node scripts/check-ecosystem.mjs          static checks on this repo
-//   node scripts/check-ecosystem.mjs --live   also requests every deployed URL
-import { readFileSync, existsSync, readdirSync, statSync } from 'node:fs';
+//   node scripts/check-ecosystem.mjs --live   also requests every deployed address
+import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import { createHash } from 'node:crypto';
-import { dirname, join } from 'node:path';
+import { dirname, join, extname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const read = (p) => readFileSync(join(root, p), 'utf8');
+// folder -> slug it registers with <AuthProvider site="...">
 const APPS = {
-  hub: 'playx',
-  'ember-wyrm': 'ember-wyrm-site',
-  drakebreaker: 'drakebreaker-site',
-  'dragon-flight': 'dragon-flight-site',
-  'dragon-strike': 'dragon-strike-shooter-site',
+  'Dragon-pyre-strike': 'hub',
+  'dragon-strike-shooter-site': 'dragon-strike',
+  'ember-wyrm-site': 'ember-wyrm',
+  'drakebreaker-site': 'drakebreaker',
+  'dragon-flight-site': 'dragon-flight',
+  '2042': 'dragon-2048',
+  soduko: 'dragon-sudoku',
+  tictactoe: 'dragon-tictactoe',
 };
 
 let failures = 0;
 const ok = (m) => console.log('  ✓', m);
 const bad = (m) => { failures++; console.log('  ✗', m); };
-const check = (cond, pass, fail) => (cond ? ok(pass) : bad(fail));
+const check = (c, pass, fail) => (c ? ok(pass) : bad(fail));
 
-/* ---- 1. shared module identical everywhere ---- */
-console.log('\n[1] Shared module (shared/dps) is identical in every app');
+const walk = (dir, out = []) => {
+  for (const f of readdirSync(dir)) {
+    if (['node_modules', 'dist', '.git'].includes(f)) continue;
+    const p = join(dir, f);
+    statSync(p).isDirectory() ? walk(p, out) : out.push(p);
+  }
+  return out;
+};
 const hashDir = (dir) => {
   const h = createHash('sha1');
   for (const f of readdirSync(dir).sort()) h.update(f).update(readFileSync(join(dir, f)));
   return h.digest('hex').slice(0, 10);
 };
+
+console.log('\n[1] Shared module (shared/dps) is identical in every app');
 const canon = hashDir(join(root, 'shared/dps'));
-for (const [name, dir] of Object.entries(APPS)) {
-  const d = join(root, dir, 'src/dps');
-  check(existsSync(d) && hashDir(d) === canon, `${name}: in sync`, `${name}: src/dps differs from shared/dps — run node scripts/sync-dps.mjs`);
+for (const app of Object.keys(APPS)) {
+  const d = join(root, app, 'src/dps');
+  check(existsSync(d) && hashDir(d) === canon, `${app}`, `${app}: src/dps is out of date — run: node scripts/sync-dps.mjs`);
 }
 
-/* ---- 2. one central database ---- */
-console.log('\n[2] One central Supabase project');
-const cfg = read('shared/dps/config.ts');
-const dbUrl = cfg.match(/SUPABASE_URL = '([^']+)'/)?.[1];
-check(!!dbUrl, `central database: ${dbUrl}`, 'SUPABASE_URL missing in shared/dps/config.ts');
-for (const [name, dir] of Object.entries(APPS)) {
-  const stray = [];
-  const walk = (d) => {
-    for (const f of readdirSync(d)) {
-      if (f === 'node_modules' || f === 'dist' || f === 'dps') continue;
-      const p = join(d, f);
-      if (statSync(p).isDirectory()) walk(p);
-      else if (/\.(ts|tsx)$/.test(f) && /supabase\.co|VITE_SUPABASE|createClient\(/.test(readFileSync(p, 'utf8'))) stray.push(p.replace(root + '/', ''));
-    }
-  };
-  walk(join(root, dir, 'src'));
-  check(stray.length === 0, `${name}: no private database client or keys`, `${name}: own Supabase config found in ${stray.join(', ')}`);
-  check(!existsSync(join(root, dir, '.env')) && !existsSync(join(root, dir, '.env.example')) && !existsSync(join(root, dir, 'supabase')), `${name}: no env/database files`, `${name}: has env or supabase files`);
+console.log('\n[2] Each app is connected to the shared account system');
+for (const [app, slug] of Object.entries(APPS)) {
+  const pkg = JSON.parse(read(`${app}/package.json`));
+  check(pkg.dependencies?.['@supabase/supabase-js'], `${app}: supabase-js installed`, `${app}: missing @supabase/supabase-js`);
+  const main = read(`${app}/src/main.tsx`);
+  check(main.includes(`<AuthProvider site="${slug}">`), `${app}: AuthProvider site="${slug}"`, `${app}: main.tsx must render <AuthProvider site="${slug}">`);
+  if (slug !== 'hub') {
+    const src = walk(join(root, app, 'src')).filter((f) => /\.(tsx?)$/.test(f) && !f.includes('/dps/'));
+    check(src.some((f) => readFileSync(f, 'utf8').includes('<DragonDock')), `${app}: DragonDock (account, theme, feedback, exit)`, `${app}: no <DragonDock> rendered`);
+  }
 }
 
-/* ---- 3. site registry matches the hub catalogue ---- */
-console.log('\n[3] Site URLs agree (shared config ⇄ hub catalogue)');
-const sites = [...cfg.matchAll(/slug: '([^']+)', title: '[^']*', tagline: '[^']*', url: '([^']+)'/g)].map((m) => ({ slug: m[1], url: m[2] }));
-const hubUrl = cfg.match(/HUB_URL = '([^']+)'/)?.[1];
-const games = read('playx/src/data/games.ts');
-for (const s of sites) {
-  const block = games.split(`slug: '${s.slug}'`)[1] ?? '';
-  const hubExt = block.match(/externalUrl: '([^']+)'/)?.[1];
-  check(hubExt === s.url, `${s.slug}: hub opens ${s.url}`, `${s.slug}: hub externalUrl (${hubExt}) ≠ config (${s.url})`);
-}
-check(sites.length === 4, `4 standalone game sites registered + hub (${hubUrl})`, `expected 4 standalone sites, found ${sites.length}`);
-
-/* ---- 4. every game links back to the hub, signs in centrally and reports scores ---- */
-console.log('\n[4] Each game: central login, exit-to-hub, score reporting');
-const all = (dir) => {
-  const out = [];
-  const walk = (d) => { for (const f of readdirSync(d)) { if (f === 'node_modules' || f === 'dist') continue; const p = join(d, f); statSync(p).isDirectory() ? walk(p) : /\.(ts|tsx)$/.test(f) && out.push(readFileSync(p, 'utf8')); } };
-  walk(join(root, dir, 'src'));
-  return out.join('\n');
-};
-for (const [name, dir] of Object.entries(APPS)) {
-  const code = all(dir);
-  check(/<AuthProvider>/.test(read(`${dir}/src/main.tsx`)), `${name}: wrapped in the central AuthProvider`, `${name}: main.tsx is missing <AuthProvider>`);
-  if (name === 'hub') { check(/reportRun\(/.test(code), 'hub: reports scores', 'hub: no reportRun'); continue; }
-  check(/exitToHub\(/.test(code), `${name}: has an Exit-to-hub control`, `${name}: no exitToHub() call`);
-  check(/<DragonDock/.test(code), `${name}: shows the Realm map dock`, `${name}: no <DragonDock>`);
-  check(/reportRun\(/.test(code), `${name}: reports scores to the shared leaderboard`, `${name}: no reportRun() call`);
+console.log('\n[3] Guests store nothing: no direct browser storage outside the shared module');
+for (const app of Object.keys(APPS)) {
+  const hits = walk(join(root, app, 'src'))
+    .filter((f) => /\.(tsx?)$/.test(f) && !f.includes('/dps/'))
+    .filter((f) => /\b(localStorage|sessionStorage|indexedDB)\b/.test(readFileSync(f, 'utf8')));
+  check(!hits.length, `${app}`, `${app}: uses browser storage directly in ${hits.map((h) => h.replace(root, '')).join(', ')}`);
 }
 
-/* ---- 5. live (optional) ---- */
+console.log('\n[4] Hub lists every game');
+const catalogue = read('Dragon-pyre-strike/src/data/games.ts');
+for (const slug of Object.values(APPS).filter((s) => s !== 'hub')) check(catalogue.includes(`siteUrl('${slug}')`), slug, `hub catalogue is missing ${slug}`);
+
+console.log('\n[5] Every app is an installable PWA (manifest, offline worker, icons)');
+for (const app of Object.keys(APPS)) {
+  const pub = join(root, app, 'public');
+  let m = null;
+  try { m = JSON.parse(read(`${app}/public/manifest.webmanifest`)); } catch { /* reported below */ }
+  check(m && m.name && m.start_url && m.display === 'standalone', `${app}: manifest`, `${app}: public/manifest.webmanifest missing or invalid — run: node scripts/sync-pwa.mjs`);
+  check(existsSync(join(pub, 'sw.js')), `${app}: service worker`, `${app}: public/sw.js missing`);
+  const icons = ['icon-192.png', 'icon-512.png', 'icon-512-maskable.png', 'apple-touch-icon.png'].filter((f) => !existsSync(join(pub, 'icons', f)));
+  check(!icons.length, `${app}: icons`, `${app}: missing icons ${icons.join(', ')}`);
+  check(read(`${app}/index.html`).includes('rel="manifest"'), `${app}: index.html links the manifest`, `${app}: index.html has no manifest link`);
+  const v = existsSync(join(root, app, 'vercel.json')) ? read(`${app}/vercel.json`) : '';
+  check(v.includes('/sw.js'), `${app}: vercel.json serves sw.js uncached`, `${app}: vercel.json missing sw.js headers`);
+}
+check(read('Dragon-pyre-strike/src/App.tsx').includes('/store'), 'hub has the /store page', 'hub is missing the /store route');
+const envCanon = read('shared/.env.example');
+for (const app of Object.keys(APPS)) check(existsSync(join(root, app, '.env.example')) && read(`${app}/.env.example`) === envCanon, `${app}: .env.example`, `${app}: .env.example out of date — run: node scripts/sync-dps.mjs`);
+
+console.log('\n[6] Repository hygiene');
+const sql = walk(root).filter((f) => extname(f) === '.sql');
+check(!sql.length, 'no SQL files in the repository', `SQL files found: ${sql.join(', ')}`);
+
 if (process.argv.includes('--live')) {
-  console.log('\n[5] Deployed sites respond');
-  for (const url of [hubUrl, ...sites.map((s) => s.url)]) {
+  console.log('\n[7] Deployed addresses respond');
+  const cfg = read('shared/dps/config.ts');
+  const urls = [...cfg.matchAll(/pick\('VITE_[A-Z0-9_]+', '([^']+)'\)/g)].map((m) => m[1]);
+  for (const u of urls) {
     try {
-      const r = await fetch(url, { redirect: 'follow' });
-      check(r.ok, `${r.status} ${url}`, `${r.status} ${url}`);
+      const r = await fetch(u, { redirect: 'follow' });
+      check(r.ok, `${u} (${r.status})`, `${u} answered ${r.status}`);
     } catch (e) {
-      bad(`unreachable ${url} (${e.message})`);
+      bad(`${u} unreachable (${e.message}) — deploy it or set its VITE_* address`);
     }
   }
 }
 
-console.log(failures ? `\n${failures} problem(s) found.` : '\nAll connectivity checks passed.');
+console.log(failures ? `\n${failures} problem(s) found.\n` : '\nAll checks passed.\n');
 process.exit(failures ? 1 : 0);

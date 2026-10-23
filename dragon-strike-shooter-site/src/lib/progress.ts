@@ -5,6 +5,7 @@ const SLOT = "progress";
 import { isDragonId, type DragonId } from "../game/dragons";
 import type { GameMode } from "../game/engine";
 import { MAX_LEVEL } from "../game/levels";
+import { store } from '../dps';
 
 export interface PlayerProgress {
   highScore: number;
@@ -52,8 +53,8 @@ function readScores(raw: unknown): Record<string, number> {
 
 export function readLocalProgress(): PlayerProgress {
   try {
-    const raw = JSON.parse(localStorage.getItem(LOCAL_KEY) || "{}") as Partial<PlayerProgress>;
-    const legacyHighScore = Number(localStorage.getItem("dragon-strike-hi") || 0) || 0;
+    const raw = JSON.parse(store.getItem(LOCAL_KEY) || "{}") as Partial<PlayerProgress>;
+    const legacyHighScore = Number(store.getItem("dragon-strike-hi") || 0) || 0;
     return {
       highScore: Math.max(0, legacyHighScore, Number(raw.highScore) || 0),
       highestLevel: clampLevel(raw.highestLevel),
@@ -68,7 +69,7 @@ export function readLocalProgress(): PlayerProgress {
 
 export function writeLocalProgress(progress: PlayerProgress) {
   try {
-    localStorage.setItem(LOCAL_KEY, JSON.stringify(progress));
+    store.setItem(LOCAL_KEY, JSON.stringify(progress));
   } catch {
     // A private browser may deny storage; gameplay still works for the session.
   }

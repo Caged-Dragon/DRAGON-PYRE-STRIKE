@@ -14,6 +14,7 @@ import {
 import { GAMES } from '@/data/games'
 import { formatScore } from '@/utils/format'
 import { useDocumentMeta } from '@/hooks/useDocumentMeta'
+import { themeLink } from '@/dps'
 
 const BOARD_GAMES = GAMES.filter((g) => g.slug in SCORE_DIRECTION)
 
@@ -145,7 +146,7 @@ function PlayLink({ slug, external }: { slug: string; external?: string }) {
   const cls =
     'btn-focus mt-4 inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-bold text-white shadow-glow transition-transform hover:scale-105 hover:bg-primary2'
   return external ? (
-    <a href={external} className={cls}>
+    <a href={external} onClick={themeLink} onAuxClick={themeLink} className={cls}>
       <Play className="h-4 w-4 fill-white" /> Play now
     </a>
   ) : (

@@ -13,6 +13,7 @@ import {
   isValidPlacement,
 } from "../lib/sudoku";
 import type { GameSoundCallbacks } from "./useGameSounds";
+import { store } from '../dps';
 
 interface HistoryEntry {
   board: Board;
@@ -37,7 +38,7 @@ const EMPTY: Board = Array.from({ length: 9 }, () => Array(9).fill(0));
 
 function loadSavedGame(): PersistedGame | null {
   try {
-    const raw = localStorage.getItem(SAVE_KEY);
+    const raw = store.getItem(SAVE_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as PersistedGame;
     if (
@@ -111,7 +112,7 @@ export function useSudokuGame(sounds?: GameSoundCallbacks) {
         active,
         won,
       };
-      localStorage.setItem(SAVE_KEY, JSON.stringify(payload));
+      store.setItem(SAVE_KEY, JSON.stringify(payload));
     } catch {
       // ignore storage quota errors
     }

@@ -12,6 +12,8 @@ export interface Profile {
 export type AuthMode = 'signin' | 'signup' | 'reset' | 'recovery';
 
 export interface AuthValue {
+  /** Slug of the site this provider is running in ('hub' for the hub). */
+  site: string;
   user: User | null;
   profile: Profile | null;
   /** True until the first session check finishes. */
@@ -27,6 +29,11 @@ export interface AuthValue {
   resetPassword: (email: string) => Promise<string | null>;
   updatePassword: (password: string) => Promise<string | null>;
   refreshProfile: () => Promise<void>;
+  /** Feedback dialog. `game` defaults to the current site (null for the hub). */
+  feedbackOpen: boolean;
+  feedbackGame: string | null;
+  openFeedback: (game?: string | null) => void;
+  closeFeedback: () => void;
 }
 
 export const AuthContext = createContext<AuthValue | null>(null);

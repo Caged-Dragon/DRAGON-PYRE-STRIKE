@@ -22,7 +22,8 @@ const PAD_H = 18;
 const BALL_R = 11;
 const BASE_SPEED = 5.0;
 const MAX_PARTICLES = 420;
-import { queueCloudSave, reportRun } from "../dps";
+import { getRealmTheme, reportRun } from "../dps";
+import { store } from '../dps';
 
 const HS_KEY = "drakebreaker-hs";
 const PROGRESS_KEY = "drakebreaker-unlocked";
@@ -173,12 +174,12 @@ function circleRect(x: number, y: number, r: number, b: Brick) {
 }
 
 export function loadUnlocked(): number {
-  const n = Number(localStorage.getItem(PROGRESS_KEY) || 1);
+  const n = Number(store.getItem(PROGRESS_KEY) || 1);
   return clamp(Number.isFinite(n) ? n : 1, 1, LEVELS.length);
 }
 
 export function resetUnlocked() {
-  localStorage.removeItem(PROGRESS_KEY);
+  store.removeItem(PROGRESS_KEY);
 }
 
 export type EngineCallbacks = {
@@ -219,7 +220,7 @@ export class DrakeGame {
   rage = 0;
   rageActive = 0;
   effects: EffectMap = {};
-  high = Number(localStorage.getItem(HS_KEY) || 0);
+  high = Number(store.getItem(HS_KEY) || 0);
   unlocked = loadUnlocked();
   overlay: OverlayKind = "ready";
   readyReason: ReadyReason = "level";
@@ -547,20 +548,18 @@ export class DrakeGame {
   private saveHigh() {
     if (this.score > this.high) {
       this.high = this.score;
-      localStorage.setItem(HS_KEY, String(this.high));
+      store.setItem(HS_KEY, String(this.high));
     }
     if (this.score > 0) {
       // Shared leaderboard (posted after login if the player is a guest).
       void reportRun("drakebreaker", this.score, { level: this.level + 1 });
-      queueCloudSave("drakebreaker", "main", { high: this.high, unlocked: this.unlocked });
     }
   }
 
   private unlock(count: number) {
     if (count > this.unlocked) {
       this.unlocked = clamp(count, 1, LEVELS.length);
-      localStorage.setItem(PROGRESS_KEY, String(this.unlocked));
-      queueCloudSave("drakebreaker", "main", { high: this.high, unlocked: this.unlocked });
+      store.setItem(PROGRESS_KEY, String(this.unlocked));
     }
   }
 
@@ -1379,8 +1378,12 @@ export class DrakeGame {
   private drawWorld() {
     const ctx = this.ctx;
     ctx.clearRect(0, 0, W, H);
-    this.drawCave();
-    this.drawBgEmbers();
+    const classic = getRealmTheme() === "classic";
+    if (classic) this.drawClassicBackdrop();
+    else {
+      this.drawCave();
+      this.drawBgEmbers();
+    }
     for (const br of this.bricks) if (br.alive) this.drawBrick(br);
     this.drawBeams();
     this.drawDrops();
@@ -1394,7 +1397,17 @@ export class DrakeGame {
       ctx.fillRect(0, 0, W, H);
     }
     if (this.boosting && this.overlay === "playing") this.drawSpeedLines();
-    this.drawVignette();
+    if (!classic) this.drawVignette();
+  }
+
+  /** Classic theme: a plain light board instead of the dragon cave. */
+  private drawClassicBackdrop() {
+    const ctx = this.ctx;
+    const g = ctx.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, "#f8fafc");
+    g.addColorStop(1, "#cbd5e1");
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, W, H);
   }
 
   private drawCave() {

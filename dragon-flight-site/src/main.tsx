@@ -6,7 +6,7 @@ import { AuthProvider } from "./dps";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <AuthProvider>
+    <AuthProvider site="dragon-flight">
       <App />
     </AuthProvider>
   </StrictMode>

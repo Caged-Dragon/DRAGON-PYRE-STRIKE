@@ -271,3 +271,26 @@ canvas {
 .db-tile:not(:disabled):hover { transform: translateY(-3px) scale(1.05); }
 .btn-ghost, .gold-border { transition: transform .2s ease, background .2s ease, box-shadow .3s ease, border-color .2s ease; }
 @media (prefers-reduced-motion: reduce) { .db-bg, .db-screen, .db-art, .db-art::after, .db-stagger > *, .db-btns > *, .btn-ember, .db-tile { animation: none !important; } }
+
+/* ================= Classic theme (set by the Realm dock: <html data-realm-theme="classic">) ================= */
+html[data-realm-theme="classic"],
+html[data-realm-theme="classic"] body,
+html[data-realm-theme="classic"] #root { background: #f1f5f9; color: #1e293b; }
+html[data-realm-theme="classic"] .db-bg { display: none; }
+html[data-realm-theme="classic"] .pointer-events-none[aria-hidden]:not(.dps-dock *) { display: none; }
+html[data-realm-theme="classic"] .gold-text { background: none; -webkit-text-fill-color: #9a3412; color: #9a3412; filter: none; }
+html[data-realm-theme="classic"] .gold-border { border-color: #cbd5e1; box-shadow: 0 6px 22px rgba(15, 23, 42, 0.12); }
+html[data-realm-theme="classic"] .ornate-panel { background: #ffffff; backdrop-filter: none; }
+html[data-realm-theme="classic"] [class*="bg-black/"] { background-color: rgba(255, 255, 255, 0.9); }
+html[data-realm-theme="classic"] .text-amber-200,
+html[data-realm-theme="classic"] .text-amber-100 { color: #334155; }
+html[data-realm-theme="classic"] .text-orange-400 { color: #c2410c; }
+html[data-realm-theme="classic"] .text-stone-500 { color: #64748b; }
+html[data-realm-theme="classic"] .bg-stone-900 { background-color: #e2e8f0; }
+html[data-realm-theme="classic"] .seg { background: #f8fafc; color: #475569; border-right-color: #cbd5e1; }
+html[data-realm-theme="classic"] .seg:hover { color: #0f172a; }
+html[data-realm-theme="classic"] .seg-active,
+html[data-realm-theme="classic"] .btn-ember { background: #dc2626; color: #fff; box-shadow: none; }
+html[data-realm-theme="classic"] .btn-ember::before { display: none; }
+html[data-realm-theme="classic"] .boost-btn { background: #e2e8f0; color: #1e293b; }
+html[data-realm-theme="classic"] .boost-btn.on { background: #dc2626; color: #fff; animation: none; }

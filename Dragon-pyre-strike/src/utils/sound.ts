@@ -1,3 +1,4 @@
+import { store } from '../dps';
 // Tiny WebAudio SFX synthesizer — no external audio assets, so nothing to
 // license and nothing to download. Respects the user's sound preference
 // (Section 17 sound toggle) by reading the same "dracopyre:sound" key the
@@ -21,7 +22,7 @@ function getCtx(): AudioContext | null {
 
 function isSoundEnabled(): boolean {
   try {
-    const raw = window.localStorage.getItem('dracopyre:sound')
+    const raw = store.getItem('dracopyre:sound')
     return raw === null ? true : JSON.parse(raw) === true
   } catch {
     return true

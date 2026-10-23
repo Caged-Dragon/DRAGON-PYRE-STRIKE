@@ -6,6 +6,7 @@ import { LEVELS, MAX_LEVEL, starsForScore } from "./game/levels";
 import { useAuth } from "./lib/useAuth";
 import { DragonDock, exitToHub } from "./dps";
 import { useTheme } from "./lib/theme";
+import { store } from './dps';
 import {
   loadCloudProgress,
   readLocalProgress,
@@ -289,7 +290,7 @@ function useAchievements() {
   const refresh = useCallback(() => {
     setUnlocked(ACHIEVEMENTS.filter((a) => {
       try {
-        return localStorage.getItem(`ds-ach-${a.id}`) === "1";
+        return store.getItem(`ds-ach-${a.id}`) === "1";
       } catch {
         return false;
       }
@@ -305,13 +306,13 @@ function useAchievements() {
     if (!def) return;
     let already = false;
     try {
-      already = localStorage.getItem(`ds-ach-${id}`) === "1";
+      already = store.getItem(`ds-ach-${id}`) === "1";
     } catch {
       already = false;
     }
     if (already) return;
     try {
-      localStorage.setItem(`ds-ach-${id}`, "1");
+      store.setItem(`ds-ach-${id}`, "1");
     } catch {
       // Ignore storage failures.
     }

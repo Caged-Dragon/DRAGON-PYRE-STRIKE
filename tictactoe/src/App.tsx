@@ -19,11 +19,9 @@ import type {
   GameSettings,
   GameSnapshot,
   MoveRecord,
-  PaymentMethod,
   Player,
   ScoreBoard,
   SettingsTab,
-  SubscriptionPlan,
   SubscriptionState,
   ThemeId,
   WinResult,
@@ -41,7 +39,6 @@ import {
   playMoveSound,
   playOutcomeSound,
   playUndoSound,
-  playUnlockFanfare,
   setMasterVolume,
 } from "./utils/soundEffects";
 import { Header } from "./components/Header";
@@ -57,8 +54,8 @@ import {
   resolveDisplayName,
   type ArenaControlProps,
 } from "./components/ScoreAndControls";
-import { SubscriptionModal } from "./components/SubscriptionModal";
 import { ClassicBackdrop, DragonBackdrop } from "./components/DragonBackdrop";
+import { DragonDock, reportRun, store, useRealmTheme } from './dps';
 
 const SUBSCRIPTION_STORAGE_KEY = "ttt_dragon_pass_v3";
 const SCORES_STORAGE_KEY = "ttt_scores_v2";
@@ -97,18 +94,10 @@ const RESTART_KEYS: ReadonlySet<keyof GameSettings> = new Set<keyof GameSettings
 /** Volume slider (0–100) → gain. 80% matches the original loudness. */
 const volumeToGain = (volume: number) => (volume / 100) * 1.25;
 
-function generateTestTransactionId(): string {
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  let code = "TXN-DRG-";
-  for (let i = 0; i < 6; i++) {
-    code += chars[Math.floor(Math.random() * chars.length)];
-  }
-  return code;
-}
 
 function loadJSON<T>(key: string, fallback: T): T {
   try {
-    const saved = localStorage.getItem(key);
+    const saved = store.getItem(key);
     if (saved) return { ...fallback, ...JSON.parse(saved) };
   } catch {
     // Ignore storage errors
@@ -116,9 +105,6 @@ function loadJSON<T>(key: string, fallback: T): T {
   return fallback;
 }
 
-function hasDragonAccess(sub: SubscriptionState): boolean {
-  return sub.isSubscribed || sub.trialMatchesRemaining > 0;
-}
 
 export function App() {
   const viewport = useViewportLayout();
@@ -126,18 +112,23 @@ export function App() {
   const [screen, setScreen] = useState<AppScreen>("menu");
   const [settingsTab, setSettingsTab] = useState<SettingsTab>(loadSettingsTab);
 
-  const [subscription, setSubscription] = useState<SubscriptionState>(() =>
-    loadJSON(SUBSCRIPTION_STORAGE_KEY, DEFAULT_SUBSCRIPTION)
-  );
+  // Both themes are free for everyone. `subscription` now only remembers which Dragon realm is equipped.
+  const [subscription, setSubscription] = useState<SubscriptionState>(() => ({
+    ...loadJSON(SUBSCRIPTION_STORAGE_KEY, DEFAULT_SUBSCRIPTION),
+    isSubscribed: true,
+    trialMatchesRemaining: 0,
+  }));
 
-  // All preferences in one persisted object. Dragon falls back to Classic if access lapsed.
+  // All preferences in one persisted object. The theme itself is the realm-wide choice (see useRealmTheme).
   const [settings, setSettings] = useState<GameSettings>(() => {
     const saved = loadSettings();
-    const sub = loadJSON(SUBSCRIPTION_STORAGE_KEY, DEFAULT_SUBSCRIPTION);
-    return saved.theme === "dragon" && !hasDragonAccess(sub)
-      ? { ...saved, theme: "classic" }
-      : saved;
+    return saved;
   });
+  const [realmTheme, setRealmTheme] = useRealmTheme();
+  // The Dragon / Classic choice is shared by the whole Realm; mirror it into this game's settings.
+  useEffect(() => {
+    if (settings.theme !== realmTheme) setSettings((prev) => ({ ...prev, theme: realmTheme }));
+  }, [realmTheme, settings.theme]);
   const [savedAt, setSavedAt] = useState(0);
 
   const [scores, setScores] = useState<ScoreBoard>(() =>
@@ -163,8 +154,6 @@ export function App() {
   const [hintIndex, setHintIndex] = useState<number | null>(null);
   const [isAiThinking, setIsAiThinking] = useState<boolean>(false);
 
-  const [isSubModalOpen, setIsSubModalOpen] = useState<boolean>(false);
-  const [modalPreviewRealm, setModalPreviewRealm] = useState<DragonRealmId>("inferno");
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const activeRealm = subscription.selectedRealm;
@@ -220,7 +209,7 @@ export function App() {
 
   useEffect(() => {
     try {
-      localStorage.setItem(SUBSCRIPTION_STORAGE_KEY, JSON.stringify(subscription));
+      store.setItem(SUBSCRIPTION_STORAGE_KEY, JSON.stringify(subscription));
     } catch {
       // Ignore storage errors
     }
@@ -228,7 +217,7 @@ export function App() {
 
   useEffect(() => {
     try {
-      localStorage.setItem(SCORES_STORAGE_KEY, JSON.stringify(scores));
+      store.setItem(SCORES_STORAGE_KEY, JSON.stringify(scores));
     } catch {
       // Ignore storage errors
     }
@@ -249,7 +238,7 @@ export function App() {
   /* ---------------- Game engine ---------------- */
 
   const recordOutcome = useCallback((result: WinResult) => {
-    const { theme: curTheme, soundEnabled: curSound, subscription: curSub } = stateRef.current;
+    const { theme: curTheme, soundEnabled: curSound } = stateRef.current;
 
     setWinResult(result);
     setOverlayDismissed(false);
@@ -278,14 +267,15 @@ export function App() {
       });
       playOutcomeSound("win", curTheme, curSound);
     }
-
-    if (curTheme === "dragon" && !curSub.isSubscribed && curSub.trialMatchesRemaining > 0) {
-      setSubscription((sub) => ({
-        ...sub,
-        trialMatchesRemaining: Math.max(0, sub.trialMatchesRemaining - 1),
-      }));
-    }
   }, []);
+
+  // Career points go to the shared leaderboard after every finished round (signed-in players only).
+  const reportedMatches = useRef(scores.totalMatches);
+  useEffect(() => {
+    if (scores.totalMatches <= reportedMatches.current) return;
+    reportedMatches.current = scores.totalMatches;
+    void reportRun("dragon-tictactoe", (scores.X + scores.O) * 10 + scores.draws * 3, { rounds: scores.totalMatches, bestStreak: scores.bestStreak });
+  }, [scores]);
 
   // Reset the turn clock whenever the turn changes
   useEffect(() => {
@@ -298,7 +288,7 @@ export function App() {
 
   // Count down only while the game screen is open
   useEffect(() => {
-    if (screen !== "arena" || turnTimer === 0 || winResult || isSubModalOpen || moves.length === 0) {
+    if (screen !== "arena" || turnTimer === 0 || winResult || moves.length === 0) {
       return;
     }
 
@@ -315,7 +305,7 @@ export function App() {
     }, 100);
 
     return () => clearInterval(interval);
-  }, [isSubModalOpen, moves.length, recordOutcome, screen, turnTimer, winResult]);
+  }, [moves.length, recordOutcome, screen, turnTimer, winResult]);
 
   const commitMove = useCallback(
     (index: number, player: Player) => {
@@ -425,31 +415,18 @@ export function App() {
     setScreen("settings");
   };
 
-  const openPayment = (realmId?: DragonRealmId) => {
-    setModalPreviewRealm(realmId || activeRealm);
-    setIsSubModalOpen(true);
-  };
-
   const handleSelectTheme = (target: ThemeId) => {
     if (target === "classic") {
-      setSettings((prev) => ({ ...prev, theme: "classic" }));
+      setRealmTheme("classic");
       return;
     }
-    if (hasDragonAccess(subscription)) {
-      setSettings((prev) => ({ ...prev, theme: "dragon" }));
-    } else {
-      openPayment();
-    }
+    setRealmTheme("dragon");
   };
 
   const handleSelectRealm = (realmId: DragonRealmId) => {
-    if (hasDragonAccess(subscription)) {
-      setSubscription((prev) => ({ ...prev, selectedRealm: realmId }));
-      setSettings((prev) => ({ ...prev, theme: "dragon" }));
-      setToastMessage(`${DRAGON_REALMS[realmId].name} equipped`);
-    } else {
-      openPayment(realmId);
-    }
+    setSubscription((prev) => ({ ...prev, selectedRealm: realmId }));
+    setRealmTheme("dragon");
+    setToastMessage(`${DRAGON_REALMS[realmId].name} equipped`);
   };
 
   const handleRestoreDefaults = () => {
@@ -483,17 +460,6 @@ export function App() {
   };
 
   const handleNewRound = () => {
-    if (
-      theme === "dragon" &&
-      !subscription.isSubscribed &&
-      subscription.trialMatchesRemaining <= 0 &&
-      winResult !== null
-    ) {
-      openPayment();
-      setSettings((prev) => ({ ...prev, theme: "classic" }));
-      setToastMessage("Trial matches used — unlock the Dragon Pass with test checkout");
-    }
-
     const nextStarter: Player =
       gameMode === "pvp" && settings.alternateStarter
         ? startingPlayer === "X"
@@ -539,57 +505,6 @@ export function App() {
   const handleResetScores = () => {
     setScores(DEFAULT_SCORES);
     setToastMessage("Career stats cleared");
-  };
-
-  /* ---------------- Dragon Pass (test checkout) ---------------- */
-
-  const handleCompletePayment = ({
-    plan,
-    realm: realmId,
-    paymentMethod,
-    amountPaid,
-  }: {
-    plan: SubscriptionPlan;
-    realm: DragonRealmId;
-    paymentMethod: PaymentMethod;
-    amountPaid: string;
-  }) => {
-    const txnId = subscription.transactionId || generateTestTransactionId();
-    setSubscription({
-      isSubscribed: true,
-      plan,
-      trialMatchesRemaining: 0,
-      trialUsedOnce: true,
-      selectedRealm: realmId,
-      activatedAt: new Date().toISOString(),
-      transactionId: txnId,
-      paymentMethod,
-      amountPaid,
-    });
-    setSettings((prev) => ({ ...prev, theme: "dragon" }));
-    setIsSubModalOpen(false);
-    playUnlockFanfare(soundEnabled);
-    setToastMessage(`Payment approved · ${DRAGON_REALMS[realmId].name} unlocked`);
-  };
-
-  const handleStartTrialMatches = (realmId: DragonRealmId) => {
-    setSubscription((prev) => ({
-      ...prev,
-      trialMatchesRemaining: 3,
-      trialUsedOnce: true,
-      selectedRealm: realmId,
-    }));
-    setSettings((prev) => ({ ...prev, theme: "dragon" }));
-    setIsSubModalOpen(false);
-    playUnlockFanfare(soundEnabled);
-    setToastMessage(`3 free Dragon trial matches · ${DRAGON_REALMS[realmId].name}`);
-  };
-
-  const handleCancelSubscription = () => {
-    setSubscription({ ...DEFAULT_SUBSCRIPTION, trialUsedOnce: true, selectedRealm: activeRealm });
-    setSettings((prev) => ({ ...prev, theme: "classic" }));
-    setIsSubModalOpen(false);
-    setToastMessage("Dragon theme re-locked — test the checkout again anytime");
   };
 
   /* ---------------- Derived view data ---------------- */
@@ -726,7 +641,6 @@ export function App() {
         soundEnabled={soundEnabled}
         matchLive={matchLive}
         onNavigate={setScreen}
-        onOpenSubscriptionModal={() => openPayment()}
         onToggleSound={() => updateSetting("soundEnabled", !soundEnabled)}
       />
 
@@ -744,7 +658,6 @@ export function App() {
             onQuickStart={handleQuickStart}
             onResumeGame={() => setScreen("arena")}
             onOpenSettings={openSettings}
-            onOpenPaymentModal={() => openPayment()}
           />
         )}
 
@@ -761,7 +674,6 @@ export function App() {
             onUpdate={updateSetting}
             onSelectTheme={handleSelectTheme}
             onSelectRealm={handleSelectRealm}
-            onOpenPayment={() => openPayment()}
             onResetScores={handleResetScores}
             onRestoreDefaults={handleRestoreDefaults}
             onPreviewSound={handlePreviewSound}
@@ -802,16 +714,7 @@ export function App() {
         </div>
       )}
 
-      <SubscriptionModal
-        isOpen={isSubModalOpen}
-        subscription={subscription}
-        initialRealm={modalPreviewRealm}
-        onClose={() => setIsSubModalOpen(false)}
-        onCompletePayment={handleCompletePayment}
-        onStartTrialMatches={handleStartTrialMatches}
-        onCancelSubscription={handleCancelSubscription}
-        onEnterArena={() => setScreen("arena")}
-      />
+      <DragonDock siteSlug="dragon-tictactoe" position="bottom-left" />
     </div>
   );
 }

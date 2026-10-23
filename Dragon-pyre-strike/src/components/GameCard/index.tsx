@@ -6,6 +6,7 @@ import { CATEGORIES } from '@/data/categories'
 import { useFavorites } from '@/hooks/usePlayerData'
 import { useTilt } from '@/hooks/useTilt'
 import { formatPlayCount } from '@/utils/format'
+import { themeLink } from '@/dps'
 
 export default function GameCard({ game }: { game: GameMeta }) {
   const { isFavorite, toggleFavorite } = useFavorites()
@@ -65,7 +66,7 @@ export default function GameCard({ game }: { game: GameMeta }) {
         <div className="mt-auto flex items-center justify-between gap-2 pt-1">
           <span className="stat-mono truncate text-xs text-muted">{formatPlayCount(game.playCount)} plays</span>
           {game.externalUrl ? (
-            <a href={game.externalUrl} className="btn-focus flex items-center gap-0.5 rounded text-xs font-semibold text-primary [@media(hover:hover)]:hidden">
+            <a href={game.externalUrl} onClick={themeLink} onAuxClick={themeLink} className="btn-focus flex items-center gap-0.5 rounded text-xs font-semibold text-primary [@media(hover:hover)]:hidden">
               Play <ExternalLink className="h-3 w-3" />
             </a>
           ) : (

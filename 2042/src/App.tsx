@@ -4,13 +4,14 @@ import { type Dir, type Tile, addRandomTile, canMove, hydrate, initGame, maxTile
 import { STAGES, stageFor, type Stage } from "./stages";
 import { GameAudio } from "./sound";
 import heroArt from "./images/dragon-keep.jpg";
+import { DragonDock, exitToHub, reportRun, store, useRealmTheme, type RealmTheme } from './dps';
+type Theme = RealmTheme;
 
 const SAVE_KEY = "dragon2048-save";
 const STATS_KEY = "dragon2048-stats";
 const SOUND_KEY = "dragon2048-sound";
 const CODEX_KEY = "dragon2048-codex";
 type Difficulty = "easy" | "classic" | "hard";
-type Theme = "classic" | "dragon";
 const MODES: Record<Difficulty, { label: string; size: number; caption: string }> = {
   easy: { label: "Relaxed", size: 5, caption: "5 x 5 grid" },
   classic: { label: "Classic", size: 4, caption: "4 x 4 grid" },
@@ -18,9 +19,9 @@ const MODES: Record<Difficulty, { label: string; size: number; caption: string }
 };
 const modeName = (v: Difficulty) => MODES[v].label;
 const format = (n: number) => n.toLocaleString("en-US");
-const safeRead = (key: string) => { try { return localStorage.getItem(key); } catch { return null; } };
-const safeWrite = (key: string, value: string) => { try { localStorage.setItem(key, value); } catch { /* private browsing */ } };
-const safeRemove = (key: string) => { try { localStorage.removeItem(key); } catch { /* private browsing */ } };
+const safeRead = (key: string) => { try { return store.getItem(key); } catch { return null; } };
+const safeWrite = (key: string, value: string) => { try { store.setItem(key, value); } catch { /* private browsing */ } };
+const safeRemove = (key: string) => { try { store.removeItem(key); } catch { /* private browsing */ } };
 
 type State = {
   id: number;
@@ -160,10 +161,10 @@ export default function App() {
   const [game, dispatch] = useReducer(reducer, undefined, loadGame);
   const [screen, setScreen] = useState<"menu" | "game">("menu");
   const [difficulty, setDifficulty] = useState<Difficulty>("classic");
-  const [theme, setTheme] = useState<Theme>("classic");
+  const [theme, setTheme] = useRealmTheme();
   const [stats, setStats] = useState<Stats>(loadStats);
   const [soundOn, setSoundOn] = useState(() => safeRead(SOUND_KEY) !== "off");
-  const [modal, setModal] = useState<"subscription" | "restart" | null>(null);
+  const [modal, setModal] = useState<"restart" | null>(null);
   const [showStats, setShowStats] = useState(false);
   const [banner, setBanner] = useState<{ value: number; id: number } | null>(null);
   const [codex, setCodex] = useState(() => Number(safeRead(CODEX_KEY)) || 0);
@@ -187,6 +188,7 @@ export default function App() {
     setStats(prev => ({ ...prev, best: Math.max(prev.best, game.score), moves: prev.moves + 1,
       merges: prev.merges + (game.tiles.filter(t => t.merged).length), totalScore: prev.totalScore + game.gain,
       highestTile: Math.max(prev.highestTile, game.maxValue), wins: prev.wins + Number(game.justWon) }));
+    if (game.justWon || game.justOver) void reportRun("dragon-2048", game.score, { mode: game.difficulty, maxTile: game.maxValue, won: game.won });
     if (game.justWon) audio.current.play("win");
     else if (game.justOver) audio.current.play("lose");
     else if (game.evolvedTo && theme === "dragon") audio.current.play("milestone");
@@ -236,7 +238,6 @@ export default function App() {
   const returnMenu = () => { audio.current.play("tap"); setScreen("menu"); setBanner(null); };
   const requestNew = () => { if (game && !game.over) setModal("restart"); else startNew(); };
   const toggleSound = () => { if (!soundOn) { audio.current.setEnabled(true); audio.current.play("tap"); } setSoundOn(!soundOn); };
-  const chooseDragonPreview = () => { setTheme("dragon"); setModal(null); audio.current.play("milestone"); };
   const hasSave = !!game && !game.over;
   const size = game ? MODES[game.difficulty].size : 4;
   const showWin = !!game?.won && !game.keepPlaying;
@@ -267,7 +268,7 @@ export default function App() {
                 <button className="top-action" onClick={toggleSound} aria-label={soundOn ? "Mute sound" : "Unmute sound"} title={soundOn ? "Sound on" : "Sound off"}>
                   {soundOn ? <SoundIcon /> : <MuteIcon />}
                 </button>
-                <button className="top-action eyebrow px-3" onClick={() => setModal("subscription")}>Dragon Pass</button>
+                <button className="top-action eyebrow px-3" onClick={() => void exitToHub()}>Realm hub</button>
               </div>
             </nav>
 
@@ -461,13 +462,13 @@ export default function App() {
                       </span>
                       <span className="game-muted eyebrow shrink-0">Free</span>
                     </button>
-                    <button className={`theme-option ${theme === "dragon" ? "selected" : ""}`} onClick={() => theme === "dragon" ? setTheme("classic") : setModal("subscription")} aria-pressed={theme === "dragon"}>
+                    <button className={`theme-option ${theme === "dragon" ? "selected" : ""}`} onClick={() => { setTheme("dragon"); audio.current.play("tap"); }} aria-pressed={theme === "dragon"}>
                       <span className="theme-swatch dragon-swatch"><Creature value={8} className="h-full w-full" /></span>
                       <span className="min-w-0 flex-1">
                         <strong className="block text-[clamp(0.88rem,0.82rem+0.2vw,1.05rem)] font-bold">Dragon</strong>
                         <small className="game-muted block text-[clamp(0.72rem,0.68rem+0.14vw,0.86rem)]">Living dragons and embers</small>
                       </span>
-                      <span className="game-muted eyebrow shrink-0">{theme === "dragon" ? "Preview on" : "Pass"}</span>
+                      <span className="game-muted eyebrow shrink-0">Free</span>
                     </button>
                   </div>
                 </section>
@@ -511,25 +512,7 @@ export default function App() {
       {modal && (
         <div className="modal-backdrop fixed inset-0 z-[60] flex items-center justify-center p-[clamp(0.75rem,0.55rem+0.8vw,1.5rem)]" onMouseDown={e => { if (e.target === e.currentTarget) setModal(null); }} role="presentation">
           <div className="modal-panel overlay-in w-full max-w-[27rem]" role="dialog" aria-modal="true" aria-labelledby="modal-title">
-            {modal === "subscription" ? <>
-              <div className="mb-[clamp(1rem,0.85rem+0.6vw,1.75rem)] h-[clamp(3.75rem,3rem+2.5vw,5.25rem)] w-[clamp(3.75rem,3rem+2.5vw,5.25rem)] rounded-2xl bg-[#512a30] p-1">
-                <Creature value={64} className="h-full w-full" />
-              </div>
-              <p className="eyebrow text-[#d99b51]">Dragon Pass</p>
-              <h2 id="modal-title" className="modal-title font-display mt-2 font-black">A world beyond numbers.</h2>
-              <p className="mt-3 text-[clamp(0.85rem,0.8rem+0.18vw,1.02rem)] leading-relaxed opacity-75">
-                Watch eggs hatch and dragons evolve as you play. Dragon is planned as a subscription theme; checkout is not connected in this demo.
-              </p>
-              <button className="primary-button mt-[clamp(1.25rem,1rem+0.9vw,2.15rem)] w-full" onClick={chooseDragonPreview}>
-                Try Dragon preview <ArrowIcon />
-              </button>
-              <p className="mt-3 text-center text-[clamp(0.72rem,0.68rem+0.14vw,0.85rem)] opacity-55">
-                Free preview for this visit. No payment or subscription is created.
-              </p>
-              <button className="mt-4 w-full py-2 text-[clamp(0.85rem,0.8rem+0.18vw,1.02rem)] opacity-70 transition-opacity hover:opacity-100" onClick={() => setModal(null)}>
-                Not now
-              </button>
-            </> : <>
+            <>
               <p className="eyebrow text-[#d99b51]">Start fresh</p>
               <h2 id="modal-title" className="modal-title font-display mt-3 font-black">Begin a new game?</h2>
               <p className="mt-3 text-[clamp(0.85rem,0.8rem+0.18vw,1.02rem)] leading-relaxed opacity-75">
@@ -539,10 +522,11 @@ export default function App() {
                 <button className="secondary-button flex-1" onClick={() => setModal(null)}>Keep playing</button>
                 <button className="primary-button flex-1" onClick={startNew}>Start new</button>
               </div>
-            </>}
+            </>
           </div>
         </div>
       )}
+      <DragonDock siteSlug="dragon-2048" position="bottom-left" />
     </div>
   );
 }

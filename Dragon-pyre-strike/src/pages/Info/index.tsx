@@ -58,10 +58,10 @@ export const PRIVACY_COPY = {
   title: 'Privacy Policy',
   paragraphs: [
     `${SITE_CONFIG.siteName} does not require an account. You can play every game as a guest.`,
-    "As a guest, favorites, recently played games, high scores and your sound preference are stored locally on your device using your browser's localStorage and are not transmitted to us.",
-    'If you create a Dragon Realm account, we store your email address, username, display name, avatar, favorites, game scores, play counts and game saves so they can follow you across the Realm\'s game sites. This data is held in a hosted database (Supabase) and is protected by per-user access rules: only you can read or change your saves and favorites. Your username, avatar, level and scores are visible on public leaderboards; your email address is not.',
-    "Clearing your browser's site data, using a different browser, or switching devices will reset guest data. Account data stays until you ask us to delete it — contact hello@dracopyrestrike.game and we'll remove your account and everything attached to it.",
-    'We do not sell your data or use it for advertising.',
+    "As a guest, nothing is saved: favorites, scores, settings and your theme live only in the open page and disappear when you refresh or close it.",
+    'If you create a Dragon Realm account, we store your email address, username, display name, avatar, theme and settings, favorites, game scores, play counts and game saves so they can follow you across the Realm\'s game sites. This data is held in a hosted database (Supabase) and is protected by per-user access rules: only you can read or change your saves and favorites. Your username, avatar, level and scores are visible on public leaderboards; your email address is not.',
+    "Guest data is never kept, so a refresh starts you fresh. Account data stays until you ask us to delete it — contact hello@dracopyrestrike.game and we'll remove your account and everything attached to it.",
+    'If you send feedback, we store its text, rating, the game and page it was about, and your email only if you add one (signed-in feedback is linked to your account). We do not sell your data or use it for advertising.',
   ],
 }
 
